@@ -445,24 +445,18 @@
   gap: 6px;
 }
 
-.ck-assign-btn {
+.ck-toggle-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 10px;
-  background: #f59e0b;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  flex-shrink: 0;
   font-family: system-ui, sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  line-height: 1.4;
-}
-
-.ck-assign-btn:hover {
-  background: #d97706;
+  line-height: 1;
 }
 
 /* Inline form — hidden by default, shown when row has .ck-form-open */

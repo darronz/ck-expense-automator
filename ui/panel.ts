@@ -595,6 +595,8 @@ function renderUnmatchedRow(
   // Primary row with date, amount, description, and assign button
   const primaryRow = el('div', { class: 'ck-item-primary ck-unmatched-row' });
 
+  const toggleIcon = el('span', { class: 'ck-toggle-icon' }, '+');
+
   const left = el('div', { class: 'ck-item-left' });
   left.appendChild(el('span', { class: 'ck-item-date' }, item.date.slice(0, 5)));
   left.appendChild(document.createTextNode(' '));
@@ -606,14 +608,15 @@ function renderUnmatchedRow(
   const shortDesc = (descLines[descLines.length - 1]?.trim() ?? item.description).slice(0, 40);
   left.appendChild(el('span', { class: 'ck-item-name' }, shortDesc));
 
-  const assignBtn = el('button', { class: 'ck-assign-btn' }, 'Assign');
-  assignBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    rowEl.classList.toggle('ck-form-open');
+  // Entire primary row is clickable to toggle the form
+  primaryRow.style.cursor = 'pointer';
+  primaryRow.addEventListener('click', () => {
+    const isOpen = rowEl.classList.toggle('ck-form-open');
+    toggleIcon.textContent = isOpen ? '−' : '+';
   });
 
+  primaryRow.appendChild(toggleIcon);
   primaryRow.appendChild(left);
-  primaryRow.appendChild(assignBtn);
   rowEl.appendChild(primaryRow);
 
   // Build inline form (hidden until ck-form-open applied)
