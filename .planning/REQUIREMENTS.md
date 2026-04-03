@@ -28,12 +28,12 @@
 ### Injected Panel
 
 - [x] **PANEL-01**: Shadow DOM floating panel is injected on CK ExpenseItems pages, isolated from portal CSS
-- [ ] **PANEL-02**: Panel displays matched items with date, amount, rule name, category, vendor, and VAT summary
-- [ ] **PANEL-03**: User can submit individual matched items via per-row [Submit] button
-- [ ] **PANEL-04**: User can submit all matched items in bulk via [Submit All] button with progress indicator
-- [ ] **PANEL-05**: Submitted items show green success state; failed items show error with [Retry] button
+- [x] **PANEL-02**: Panel displays matched items with date, amount, rule name, category, vendor, and VAT summary
+- [x] **PANEL-03**: User can submit individual matched items via per-row [Submit] button
+- [x] **PANEL-04**: User can submit all matched items in bulk via [Submit All] button with progress indicator
+- [x] **PANEL-05**: Submitted items show green success state; failed items show error with [Retry] button
 - [x] **PANEL-06**: Panel shows claim context (month/year) and item counts (matched/unmatched) in header
-- [ ] **PANEL-07**: Dry-run / preview mode toggle shows what would be submitted without actually submitting
+- [x] **PANEL-07**: Dry-run / preview mode toggle shows what would be submitted without actually submitting
 - [x] **PANEL-08**: Foreign currency amounts are displayed alongside GBP amounts where present in bank descriptions
 
 ### Unmatched Item Handling
@@ -96,12 +96,12 @@
 | PORT-05 | Phase 2 | Complete |
 | PORT-06 | Phase 2 | Complete |
 | PANEL-01 | Phase 3 | Complete |
-| PANEL-02 | Phase 3 | Pending |
-| PANEL-03 | Phase 3 | Pending |
-| PANEL-04 | Phase 3 | Pending |
-| PANEL-05 | Phase 3 | Pending |
+| PANEL-02 | Phase 3 | Complete |
+| PANEL-03 | Phase 3 | Complete |
+| PANEL-04 | Phase 3 | Complete |
+| PANEL-05 | Phase 3 | Complete |
 | PANEL-06 | Phase 3 | Complete |
-| PANEL-07 | Phase 3 | Pending |
+| PANEL-07 | Phase 3 | Complete |
 | PANEL-08 | Phase 3 | Complete |
 | UNMT-01 | Phase 3 | Pending |
 | UNMT-02 | Phase 3 | Pending |
