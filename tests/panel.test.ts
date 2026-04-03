@@ -2,7 +2,7 @@
 // Unit tests for panel submission logic — PANEL-02 through PANEL-07, UNMT-02
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { SuspenseItem, ExpenseRule, SubmissionResult } from '../lib/types';
 
 // ─── Mock browser APIs used by rules-store.ts ────────────────────────────────

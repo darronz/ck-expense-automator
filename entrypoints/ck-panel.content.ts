@@ -6,6 +6,7 @@
 
 import './ui/panel.css';
 import type { SuspenseItem } from '../lib/types';
+import { createPanel } from '../ui/panel';
 
 export default defineContentScript({
   matches: ['https://portal.churchill-knight.co.uk/ExpenseItems/*'],
@@ -59,22 +60,9 @@ export default defineContentScript({
   },
 });
 
-/**
- * Handle suspense item data received from the MAIN world script.
- * Plan 02 will replace this stub with full panel state management.
- */
 function handleItemsReady(data: { claimId: string; items: SuspenseItem[] }): void {
   console.log(
     `[CK Expense Automator] Panel received ${data.items.length} suspense items for claimId: ${data.claimId}`,
   );
-}
-
-/**
- * Create the panel DOM inside the shadow root container.
- * Plan 02 will replace this stub with the full panel implementation.
- */
-function createPanel(container: HTMLElement, _ctx: any): void {
-  const placeholder = document.createElement('div');
-  placeholder.textContent = 'CK Expense Automator loading...';
-  container.appendChild(placeholder);
+  // TODO: Phase 3 panel receives items — createPanel already handles its own state via the event bridge
 }
