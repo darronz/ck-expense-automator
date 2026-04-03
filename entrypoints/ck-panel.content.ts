@@ -68,7 +68,23 @@ export default defineContentScript({
           justifyContent: 'center',
         });
 
-        // container is the centered panel — scrollable, clickable
+        // WXT injects an <html> wrapper inside the shadow root with
+        // "position: absolute; top: 0; right: 0" — override it to allow centering
+        const htmlWrapper = shadowHost.shadowRoot?.querySelector('html');
+        if (htmlWrapper) {
+          Object.assign((htmlWrapper as HTMLElement).style, {
+            position: 'static',
+            top: 'auto',
+            right: 'auto',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          });
+        }
+
+        // container (<body>) is the centered panel — scrollable, clickable
         Object.assign(container.style, {
           pointerEvents: 'auto',
           maxWidth: 'calc(100vw - 80px)',
