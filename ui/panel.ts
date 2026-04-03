@@ -1122,7 +1122,9 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       );
 
       matchedHeader.appendChild(matchedHeading);
-      matchedHeader.appendChild(submitAllBtn);
+      if (matched.length > 0) {
+        matchedHeader.appendChild(submitAllBtn);
+      }
       matchedSection.appendChild(matchedHeader);
 
       for (const { item, rule } of matched) {
