@@ -645,6 +645,7 @@ async function submitOne(
   claimId: string,
   dryRun: boolean,
   rowEl: HTMLElement,
+  onSuccess?: () => void,
 ): Promise<void> {
   // Disable the submit button
   const submitBtn = rowEl.querySelector('.ck-submit-btn') as HTMLButtonElement | null;
@@ -664,6 +665,7 @@ async function submitOne(
   if (result.success) {
     await recordRuleUsage(rule.id);
     applySuccessState(rowEl);
+    onSuccess?.();
   } else {
     const errorMsg = result.validationMessages?.join('; ') ?? result.error ?? 'Unknown error';
     applyErrorState(rowEl, errorMsg, () => {
@@ -694,6 +696,7 @@ function buildMatchedRow(
   claimId: string,
   state: PanelState,
   ctx: any,
+  onSubmitSuccess?: () => void,
 ): HTMLElement {
   const rowEl = el('div', { class: 'ck-item-row', id: `ck-row-${item.id}` });
 
@@ -728,7 +731,10 @@ function buildMatchedRow(
   const submitBtn = el('button', { class: 'ck-submit-btn' }, 'Submit');
   submitBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    submitOne(item, rule, claimId, state.dryRun, rowEl);
+    submitOne(item, rule, claimId, state.dryRun, rowEl, () => {
+      state.submittedCount++;
+      onSubmitSuccess?.();
+    });
   });
   btnContainer.appendChild(submitBtn);
 
@@ -1085,6 +1091,16 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
       footerText.textContent = `Submitted: 0/${total} · Ready`;
 
+      // Update footer after each individual submit
+      const updateFooter = () => {
+        const totalItems = state.items.matched.length + state.items.unmatched.length;
+        if (state.submittedCount >= state.items.matched.length && state.items.unmatched.length === 0) {
+          footerText.textContent = `All ${state.submittedCount} submitted · Reload page to update`;
+        } else {
+          footerText.textContent = `Submitted: ${state.submittedCount}/${totalItems} · Reload page to see changes`;
+        }
+      };
+
       // Clear body
       bodyEl.innerHTML = '';
 
@@ -1117,7 +1133,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       matchedSection.appendChild(matchedHeader);
 
       for (const { item, rule } of matched) {
-        const rowEl = buildMatchedRow(item, rule, cId, state, ctx);
+        const rowEl = buildMatchedRow(item, rule, cId, state, ctx, updateFooter);
         matchedSection.appendChild(rowEl);
       }
 
@@ -1138,7 +1154,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
         state.items.unmatched = state.items.unmatched.filter(u => u.id !== assignedItem.id);
 
         // Add a matched row to the matched section
-        const newRow = buildMatchedRow(assignedItem, assignedRule, cId, state, ctx);
+        const newRow = buildMatchedRow(assignedItem, assignedRule, cId, state, ctx, updateFooter);
         matchedSection.appendChild(newRow);
 
         // Update counts
