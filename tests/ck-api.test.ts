@@ -23,6 +23,18 @@ describe('parseDateToISO', () => {
   it('converts 31/12/2023 to 2023-12-31', () => {
     expect(parseDateToISO('31/12/2023')).toBe('2023-12-31');
   });
+
+  it('converts "13 Mar 2026" long format to 2026-03-13', () => {
+    expect(parseDateToISO('13 Mar 2026')).toBe('2026-03-13');
+  });
+
+  it('converts "5 Jan 2025" single-digit day to 2025-01-05', () => {
+    expect(parseDateToISO('5 Jan 2025')).toBe('2025-01-05');
+  });
+
+  it('converts "31 Dec 2023" to 2023-12-31', () => {
+    expect(parseDateToISO('31 Dec 2023')).toBe('2023-12-31');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -48,6 +60,14 @@ describe('parseAmount', () => {
 
   it('returns 0 for non-numeric string', () => {
     expect(parseAmount('not a number')).toBe(0);
+  });
+
+  it('handles negative amounts like £-24.99', () => {
+    expect(parseAmount('£-24.99')).toBe(24.99);
+  });
+
+  it('handles negative without currency symbol', () => {
+    expect(parseAmount('-74.39')).toBe(74.39);
   });
 });
 

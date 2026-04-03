@@ -68,7 +68,7 @@ async function init(): Promise<void> {
   const app = document.getElementById('app');
   if (!app) return;
 
-  let tabs: chrome.tabs.Tab[];
+  let tabs: { id?: number; url?: string }[];
   try {
     tabs = await browser.tabs.query({ active: true, currentWindow: true });
   } catch {

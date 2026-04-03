@@ -9,22 +9,63 @@ import { buildPayload } from './expense-engine';
 export type { SubmissionResult };
 
 /**
- * Convert a dd/mm/yyyy date string to yyyy-mm-dd ISO format.
- * Example: '13/03/2026' → '2026-03-13'
+ * Convert a date string to yyyy-mm-dd ISO format.
+ * Supports:
+ *   - dd/mm/yyyy  → '13/03/2026' → '2026-03-13'
+ *   - dd Mon yyyy → '13 Mar 2026' → '2026-03-13'
  */
-export function parseDateToISO(ddmmyyyy: string): string {
-  const [day, month, year] = ddmmyyyy.split('/');
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+export function parseDateToISO(dateStr: string): string {
+  const MONTHS: Record<string, string> = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
+  };
+
+  // Try "dd Mon yyyy" format first (e.g. "13 Mar 2026")
+  const longMatch = dateStr.trim().match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if (longMatch) {
+    const [, day, mon, year] = longMatch;
+    const month = MONTHS[mon.toLowerCase()] ?? '01';
+    return `${year}-${month}-${day.padStart(2, '0')}`;
+  }
+
+  // Fallback to "dd/mm/yyyy" format
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // Last resort: try Date.parse
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().split('T')[0];
+  }
+
+  return dateStr; // return as-is if unparseable
 }
 
 /**
- * Parse a currency/amount string to a float.
- * Strips all non-numeric and non-period characters.
- * Example: '£18.67' → 18.67, '$25.00' → 25.00, '18.67' → 18.67
+ * Convert a date string to dd/mm/yyyy format for form submission.
+ * Handles the same inputs as parseDateToISO.
+ * Example: '13 Mar 2026' → '13/03/2026', '13/03/2026' → '13/03/2026'
+ */
+export function parseDateToDDMMYYYY(dateStr: string): string {
+  const iso = parseDateToISO(dateStr);
+  const [year, month, day] = iso.split('-');
+  if (year && month && day) {
+    return `${day}/${month}/${year}`;
+  }
+  return dateStr;
+}
+
+/**
+ * Parse a currency/amount string to a positive float.
+ * Strips currency symbols and sign, returns absolute value.
+ * Example: '£-24.99' → 24.99, '£18.67' → 18.67, '$25.00' → 25.00
  */
 export function parseAmount(text: string): number {
-  const cleaned = text.replace(/[^0-9.]/g, '');
-  return parseFloat(cleaned) || 0;
+  const cleaned = text.replace(/[^0-9.\-]/g, '');
+  return Math.abs(parseFloat(cleaned) || 0);
 }
 
 /**
@@ -141,7 +182,7 @@ export async function readSuspenseItems(_claimId: string): Promise<SuspenseItem[
 
       items.push({
         id: suspenseId,
-        date: dateText,
+        date: parseDateToDDMMYYYY(dateText),
         isoDate: parseDateToISO(dateText),
         description,
         amount: parseAmount(amountText),
