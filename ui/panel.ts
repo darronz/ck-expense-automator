@@ -957,7 +957,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   // Minimize and close buttons
   const headerActions = el('div', { class: 'ck-panel-header-actions' });
-  const minimizeBtn = el('button', { class: 'ck-header-btn' }, '▾');
+  const minimizeBtn = el('button', { class: 'ck-header-btn' }, '−');
 
   let minimized = false;
 
@@ -966,7 +966,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
     bodyEl.style.display = minimized ? 'none' : '';
     footerEl.style.display = minimized ? 'none' : '';
     progressSection.style.display = minimized ? 'none' : '';
-    minimizeBtn.textContent = minimized ? '▴' : '▾';
+    minimizeBtn.textContent = minimized ? '+' : '−';
 
     const containerEl = panelEl.parentElement;
     const htmlWrapper = containerEl?.parentElement;
