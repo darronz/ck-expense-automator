@@ -735,19 +735,8 @@ function buildMatchedRow(
     `${categoryLabel} · ${rule.purchasedFrom} · ${vatSummary}`,
   );
 
-  // Details div (expanded on row click)
+  // Details div (expanded on row click) — populated by renderDetailsView()
   const detailsDiv = el('div', { class: 'ck-item-details' });
-  detailsDiv.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;">
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Category</td><td>${categoryLabel}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Reason</td><td>${rule.description}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Vendor</td><td>${rule.purchasedFrom}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Amount</td><td>${formatAmount(item.amount)}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">VAT</td><td>${vatSummary}</td></tr>
-      <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Date</td><td>${item.date}</td></tr>
-    </table>
-    <a href="#" class="ck-edit-link" style="font-size:11px;color:#2563eb;text-decoration:underline;margin-top:4px;display:inline-block;">[Edit]</a>
-  `;
 
   // Click row to expand/collapse details
   rowEl.addEventListener('click', () => {
@@ -766,25 +755,54 @@ function buildMatchedRow(
     }
   });
 
-  // [Edit] replaces the details table with editable fields
-  detailsDiv.querySelector('.ck-edit-link')?.addEventListener('click', (e) => {
+  // [Edit] — renders editable fields including VAT, re-attachable after cancel/save
+  function renderDetailsView(): void {
+    const catLabel = getCategoryLabel(rule.nominalId);
+    const vatSummary = formatVatSummary(rule);
+    detailsDiv.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Category</td><td>${catLabel}</td></tr>
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Reason</td><td>${rule.description}</td></tr>
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Vendor</td><td>${rule.purchasedFrom}</td></tr>
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Amount</td><td>${formatAmount(item.amount)}</td></tr>
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">VAT</td><td>${vatSummary}</td></tr>
+        <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Date</td><td>${item.date}</td></tr>
+      </table>
+      <a href="#" class="ck-edit-link" style="font-size:11px;color:#2563eb;text-decoration:underline;margin-top:4px;display:inline-block;">[Edit]</a>
+    `;
+    detailsDiv.querySelector('.ck-edit-link')?.addEventListener('click', attachEditHandler);
+  }
+
+  function attachEditHandler(e: Event): void {
     e.preventDefault();
     e.stopPropagation();
 
-    // Build edit form
+    const inputStyle = 'width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;';
     const editForm = document.createElement('div');
     editForm.className = 'ck-edit-form';
     editForm.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">
         <label style="font-size:11px;color:#6b7280;">Category
-          <select class="ck-edit-category" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;"></select>
+          <select class="ck-edit-category" style="${inputStyle}"></select>
         </label>
         <label style="font-size:11px;color:#6b7280;">Reason
-          <input class="ck-edit-description" type="text" value="${rule.description}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;" />
+          <input class="ck-edit-description" type="text" value="${rule.description}" style="${inputStyle}" />
         </label>
         <label style="font-size:11px;color:#6b7280;">Vendor
-          <input class="ck-edit-vendor" type="text" value="${rule.purchasedFrom}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;" />
+          <input class="ck-edit-vendor" type="text" value="${rule.purchasedFrom}" style="${inputStyle}" />
         </label>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+          <input class="ck-edit-hasvat" type="checkbox" ${rule.hasVat ? 'checked' : ''} />
+          <span style="font-size:11px;color:#6b7280;">Has VAT receipt</span>
+        </div>
+        <div class="ck-edit-vat-fields" style="${rule.hasVat ? '' : 'display:none;'}display:flex;gap:8px;">
+          <label style="font-size:11px;color:#6b7280;flex:1;">VAT Amount (£)
+            <input class="ck-edit-vat-amount" type="number" value="${rule.vatAmount ?? ''}" min="0" step="0.01" style="${inputStyle}" />
+          </label>
+          <label style="font-size:11px;color:#6b7280;flex:1;">VAT %
+            <input class="ck-edit-vat-pct" type="number" value="${rule.vatPercentage ?? ''}" min="0" max="100" step="0.1" style="${inputStyle}" />
+          </label>
+        </div>
         <div style="display:flex;gap:8px;margin-top:4px;">
           <button class="ck-edit-save" style="background:#2563eb;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;">Save</button>
           <button class="ck-edit-cancel" style="background:#6b7280;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;">Cancel</button>
@@ -802,51 +820,43 @@ function buildMatchedRow(
       catSelect.appendChild(opt);
     }
 
-    // Replace details content with edit form
-    const originalHTML = detailsDiv.innerHTML;
+    // Toggle VAT fields visibility
+    const hasVatCheckbox = editForm.querySelector('.ck-edit-hasvat') as HTMLInputElement;
+    const vatFields = editForm.querySelector('.ck-edit-vat-fields') as HTMLElement;
+    hasVatCheckbox.addEventListener('change', () => {
+      vatFields.style.display = hasVatCheckbox.checked ? 'flex' : 'none';
+    });
+
     detailsDiv.innerHTML = '';
     detailsDiv.appendChild(editForm);
 
-    // Stop clicks inside form from collapsing the row
     editForm.addEventListener('click', (ev) => ev.stopPropagation());
 
-    // Cancel restores original
     editForm.querySelector('.ck-edit-cancel')?.addEventListener('click', () => {
-      detailsDiv.innerHTML = originalHTML;
-      // Re-attach the edit listener
-      detailsDiv.querySelector('.ck-edit-link')?.addEventListener('click', (e2) => {
-        (e2 as Event).preventDefault();
-        (e2 as Event).stopPropagation();
-        // Re-trigger by dispatching a new click — but simpler to just reload
-        // For now, editing is one-shot per expand
-      });
+      renderDetailsView();
     });
 
-    // Save updates the rule object for this submission
     editForm.querySelector('.ck-edit-save')?.addEventListener('click', () => {
       rule.nominalId = catSelect.value;
       rule.description = (editForm.querySelector('.ck-edit-description') as HTMLInputElement).value;
       rule.purchasedFrom = (editForm.querySelector('.ck-edit-vendor') as HTMLInputElement).value;
+      rule.hasVat = hasVatCheckbox.checked;
 
-      // Update the secondary row text
+      const vatAmountVal = (editForm.querySelector('.ck-edit-vat-amount') as HTMLInputElement).value.trim();
+      const vatPctVal = (editForm.querySelector('.ck-edit-vat-pct') as HTMLInputElement).value.trim();
+      rule.vatAmount = rule.hasVat && vatAmountVal ? parseFloat(vatAmountVal) : null;
+      rule.vatPercentage = rule.hasVat && vatPctVal ? parseFloat(vatPctVal) : null;
+
+      // Update secondary row
       const newCatLabel = getCategoryLabel(rule.nominalId);
       const newVatSummary = formatVatSummary(rule);
       secondaryRow.textContent = `${newCatLabel} · ${rule.purchasedFrom} · ${newVatSummary}`;
 
-      // Restore details view with updated values
-      detailsDiv.innerHTML = `
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Category</td><td>${newCatLabel}</td></tr>
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Reason</td><td>${rule.description}</td></tr>
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Vendor</td><td>${rule.purchasedFrom}</td></tr>
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Amount</td><td>${formatAmount(item.amount)}</td></tr>
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">VAT</td><td>${newVatSummary}</td></tr>
-          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Date</td><td>${item.date}</td></tr>
-        </table>
-        <a href="#" class="ck-edit-link" style="font-size:11px;color:#2563eb;text-decoration:underline;margin-top:4px;display:inline-block;">[Edit]</a>
-      `;
+      renderDetailsView();
     });
-  });
+  }
+
+  renderDetailsView();
 
   rowEl.appendChild(primaryRow);
   rowEl.appendChild(secondaryRow);
