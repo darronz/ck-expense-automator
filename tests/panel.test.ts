@@ -231,7 +231,6 @@ describe('submitAllWithDelay', () => {
     const promise = submitAllWithDelay(
       items,
       '275672',
-      false,
       submitFn,
       delayFn,
       onProgress,
@@ -252,7 +251,7 @@ describe('submitAllWithDelay', () => {
     const onProgress = vi.fn();
     const onItemResult = vi.fn();
 
-    await submitAllWithDelay(items, '275672', false, submitFn, delayFn, onProgress, onItemResult);
+    await submitAllWithDelay(items, '275672', submitFn, delayFn, onProgress, onItemResult);
 
     // For 2 items: 1 delay between them (not after last)
     expect(delayFn).toHaveBeenCalledTimes(1);
@@ -269,7 +268,7 @@ describe('submitAllWithDelay', () => {
     const onProgress = vi.fn();
     const onItemResult = vi.fn();
 
-    await submitAllWithDelay(items, '275672', false, submitFn, delayFn, onProgress, onItemResult);
+    await submitAllWithDelay(items, '275672', submitFn, delayFn, onProgress, onItemResult);
 
     expect(onProgress).toHaveBeenNthCalledWith(1, 1, 2);
     expect(onProgress).toHaveBeenNthCalledWith(2, 2, 2);
@@ -288,27 +287,10 @@ describe('submitAllWithDelay', () => {
     const onProgress = vi.fn();
     const onItemResult = vi.fn();
 
-    await submitAllWithDelay(items, '275672', false, submitFn, delayFn, onProgress, onItemResult);
+    await submitAllWithDelay(items, '275672', submitFn, delayFn, onProgress, onItemResult);
 
     expect(onItemResult).toHaveBeenNthCalledWith(1, 'a', { success: true });
     expect(onItemResult).toHaveBeenNthCalledWith(2, 'b', { success: false, error: 'NETWORK_ERROR' });
-  });
-
-  it('skips submitFn in dry-run mode and calls onItemResult with dry-run marker', async () => {
-    const items = [
-      { item: makeItem({ id: 'a' }), rule: makeRule() },
-      { item: makeItem({ id: 'b' }), rule: makeRule() },
-    ];
-    const submitFn = vi.fn();
-    const delayFn = vi.fn().mockResolvedValue(undefined);
-    const onProgress = vi.fn();
-    const onItemResult = vi.fn();
-
-    await submitAllWithDelay(items, '275672', true, submitFn, delayFn, onProgress, onItemResult);
-
-    expect(submitFn).not.toHaveBeenCalled();
-    expect(onItemResult).toHaveBeenCalledWith('a', { success: true, error: 'dry-run' });
-    expect(onItemResult).toHaveBeenCalledWith('b', { success: true, error: 'dry-run' });
   });
 
   it('passes the correct submission to submitFn for each item', async () => {
@@ -318,7 +300,7 @@ describe('submitAllWithDelay', () => {
     const submitFn = vi.fn().mockResolvedValue({ success: true } as SubmissionResult);
     const delayFn = vi.fn().mockResolvedValue(undefined);
 
-    await submitAllWithDelay(items, '275672', false, submitFn, vi.fn().mockResolvedValue(undefined), vi.fn(), vi.fn());
+    await submitAllWithDelay(items, '275672', submitFn, vi.fn().mockResolvedValue(undefined), vi.fn(), vi.fn());
 
     expect(submitFn).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -339,7 +321,7 @@ describe('submitAllWithDelay', () => {
     const onProgress = vi.fn();
     const onItemResult = vi.fn();
 
-    await submitAllWithDelay(items, '275672', false, submitFn, delayFn, onProgress, onItemResult);
+    await submitAllWithDelay(items, '275672', submitFn, delayFn, onProgress, onItemResult);
 
     expect(submitFn).toHaveBeenCalledTimes(1);
     expect(delayFn).not.toHaveBeenCalled();
@@ -353,7 +335,7 @@ describe('submitAllWithDelay', () => {
     const onItemResult = vi.fn();
 
     await expect(
-      submitAllWithDelay([], '275672', false, submitFn, delayFn, onProgress, onItemResult),
+      submitAllWithDelay([], '275672', submitFn, delayFn, onProgress, onItemResult),
     ).resolves.toBeUndefined();
 
     expect(submitFn).not.toHaveBeenCalled();
@@ -479,25 +461,14 @@ describe('submitUnmatched', () => {
     return form;
   };
 
-  it('calls submitExpense when dryRun=false', async () => {
+  it('calls submitExpense on submit', async () => {
     const item = makeItem({ id: 'unmatched-1', amount: 20 });
     const form = makeFormEl({ reason: 'SMS API', vendor: 'Twilio', saveAsRule: false });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(submitExpense).toHaveBeenCalled();
-  });
-
-  it('skips submitExpense in dry-run mode', async () => {
-    const item = makeItem({ id: 'unmatched-2' });
-    const form = makeFormEl({ saveAsRule: false });
-    const onSuccess = vi.fn();
-
-    await submitUnmatched(item, '275672', true, form, [], onSuccess);
-
-    expect(submitExpense).not.toHaveBeenCalled();
-    expect(onSuccess).toHaveBeenCalled();
   });
 
   it('calls addRule when saveAsRule=true and submit succeeds', async () => {
@@ -505,7 +476,7 @@ describe('submitUnmatched', () => {
     const form = makeFormEl({ saveAsRule: true, matchPattern: 'twilio' });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(addRule).toHaveBeenCalled();
   });
@@ -515,7 +486,7 @@ describe('submitUnmatched', () => {
     const form = makeFormEl({ saveAsRule: false });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(addRule).not.toHaveBeenCalled();
   });
@@ -525,7 +496,7 @@ describe('submitUnmatched', () => {
     const form = makeFormEl({ reason: '', saveAsRule: false });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(submitExpense).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
@@ -544,7 +515,7 @@ describe('submitUnmatched', () => {
     });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(submitExpense).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
@@ -557,7 +528,7 @@ describe('submitUnmatched', () => {
     const form = makeFormEl({ saveAsRule: false });
     const onSuccess = vi.fn();
 
-    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+    await submitUnmatched(item, '275672', form, [], onSuccess);
 
     expect(onSuccess).toHaveBeenCalled();
   });

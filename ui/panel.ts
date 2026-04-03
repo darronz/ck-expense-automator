@@ -22,7 +22,6 @@ import { extractVendor } from '../lib/vendor-extractor';
 export interface PanelState {
   items: MatchResult;
   claimId: string;
-  dryRun: boolean;
   submitting: boolean;
   submittedCount: number;
   failedCount: number;
@@ -126,7 +125,6 @@ export function parseClaimContext(
  *
  * @param items - Array of matched item+rule pairs to submit
  * @param claimId - CK portal claim ID
- * @param dryRun - When true, skip actual submissions; mark items as 'dry-run'
  * @param submitFn - Injectable submit function (defaults to submitExpense in production)
  * @param delayFn - Injectable delay function (takes ms, resolves after delay)
  * @param onProgress - Called after each item with (done, total)
@@ -135,7 +133,6 @@ export function parseClaimContext(
 export async function submitAllWithDelay(
   items: Array<{ item: SuspenseItem; rule: ExpenseRule }>,
   claimId: string,
-  dryRun: boolean,
   submitFn: (submission: ExpenseSubmission) => Promise<SubmissionResult>,
   delayFn: (ms: number) => Promise<void>,
   onProgress: (done: number, total: number) => void,
@@ -145,14 +142,8 @@ export async function submitAllWithDelay(
 
   for (let i = 0; i < total; i++) {
     const { item, rule } = items[i];
-    let result: SubmissionResult;
-
-    if (dryRun) {
-      result = { success: true, error: 'dry-run' };
-    } else {
-      const submission = buildSubmissionForItem(item, rule, claimId);
-      result = await submitFn(submission);
-    }
+    const submission = buildSubmissionForItem(item, rule, claimId);
+    const result = await submitFn(submission);
 
     onItemResult(item.id, result);
     onProgress(i + 1, total);
@@ -225,14 +216,12 @@ export function getTopCategories(rules: ExpenseRule[]): string[] {
  * Flow:
  * 1. Read form values (nominalId, reason, vendor, hasVat, vatAmount, saveAsRule, matchPattern)
  * 2. Validate: reason required; if hasVat, validate VAT via validateVat()
- * 3. In dryRun: skip submitExpense, call onSuccess
- * 4. Otherwise: call submitExpense; on success optionally call addRule(); call onSuccess
- * 5. On any validation or submission error: show in .ck-form-error div
+ * 3. Call submitExpense; on success optionally call addRule(); call onSuccess
+ * 4. On any validation or submission error: show in .ck-form-error div
  */
 export async function submitUnmatched(
   item: SuspenseItem,
   claimId: string,
-  dryRun: boolean,
   formEl: HTMLElement,
   rules: ExpenseRule[],
   onSuccess: () => void,
@@ -287,16 +276,6 @@ export async function submitUnmatched(
     vatAmount,
     matchPattern || deriveMatchPattern(vendor),
   );
-
-  if (dryRun) {
-    // In dry-run: skip actual submission
-    if (saveAsRule && matchPattern) {
-      // Optionally skip addRule in dry-run as well — consistent with matched items dry-run
-      // We do NOT call addRule in dry-run
-    }
-    onSuccess();
-    return;
-  }
 
   const submission: ExpenseSubmission = buildSubmissionForItem(item, syntheticRule, claimId);
   const result = await submitExpense(submission);
@@ -357,17 +336,6 @@ function applySuccessState(rowEl: HTMLElement): void {
   }
 }
 
-function applyDryRunState(rowEl: HTMLElement): void {
-  rowEl.classList.remove('ck-error', 'ck-success');
-  rowEl.classList.add('ck-dryrun');
-
-  const btnContainer = rowEl.querySelector('.ck-row-btn-container');
-  if (btnContainer) {
-    btnContainer.innerHTML = '';
-    const label = el('span', { class: 'ck-success-label' }, '⏭ Dry-run');
-    btnContainer.appendChild(label);
-  }
-}
 
 function applyErrorState(
   rowEl: HTMLElement,
@@ -405,7 +373,6 @@ function applyErrorState(
 function renderInlineForm(
   item: SuspenseItem,
   claimId: string,
-  dryRun: boolean,
   rules: ExpenseRule[],
   rowEl: HTMLElement,
   onAssign?: (item: SuspenseItem, rule: ExpenseRule) => void,
@@ -600,7 +567,6 @@ function renderInlineForm(
 function renderUnmatchedRow(
   item: SuspenseItem,
   claimId: string,
-  dryRun: boolean,
   rules: ExpenseRule[],
   onAssign?: (item: SuspenseItem, rule: ExpenseRule) => void,
 ): HTMLElement {
@@ -631,7 +597,7 @@ function renderUnmatchedRow(
   rowEl.appendChild(primaryRow);
 
   // Build inline form (hidden until ck-form-open applied)
-  const inlineForm = renderInlineForm(item, claimId, dryRun, rules, rowEl, onAssign);
+  const inlineForm = renderInlineForm(item, claimId, rules, rowEl, onAssign);
   rowEl.appendChild(inlineForm);
 
   return rowEl;
@@ -643,7 +609,6 @@ async function submitOne(
   item: SuspenseItem,
   rule: ExpenseRule,
   claimId: string,
-  dryRun: boolean,
   rowEl: HTMLElement,
   onSuccess?: () => void,
 ): Promise<void> {
@@ -652,11 +617,6 @@ async function submitOne(
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = '...';
-  }
-
-  if (dryRun) {
-    applyDryRunState(rowEl);
-    return;
   }
 
   const submission = buildSubmissionForItem(item, rule, claimId);
@@ -676,14 +636,14 @@ async function submitOne(
         const newBtn = el('button', { class: 'ck-submit-btn' }, 'Submit');
         newBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          submitOne(item, rule, claimId, dryRun, rowEl);
+          submitOne(item, rule, claimId, rowEl);
         });
         container.appendChild(newBtn);
       }
       rowEl.classList.remove('ck-error');
       const errEl = rowEl.querySelector('.ck-error-text');
       if (errEl) errEl.remove();
-      submitOne(item, rule, claimId, dryRun, rowEl);
+      submitOne(item, rule, claimId, rowEl);
     });
   }
 }
@@ -731,7 +691,7 @@ function buildMatchedRow(
   const submitBtn = el('button', { class: 'ck-submit-btn' }, 'Submit');
   submitBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    submitOne(item, rule, claimId, state.dryRun, rowEl, () => {
+    submitOne(item, rule, claimId, rowEl, () => {
       state.submittedCount++;
       onSubmitSuccess?.();
     });
@@ -904,7 +864,6 @@ function buildBulkSubmitHandler(
     await submitAllWithDelay(
       matchedItems,
       claimId,
-      state.dryRun,
       submitExpense,
       delayFn,
       (done, total) => {
@@ -913,9 +872,7 @@ function buildBulkSubmitHandler(
       },
       async (itemId, result) => {
         const rowEl = bodyEl.querySelector(`#ck-row-${itemId}`) as HTMLElement | null;
-        if (result.success && result.error === 'dry-run') {
-          if (rowEl) applyDryRunState(rowEl);
-        } else if (result.success) {
+        if (result.success) {
           if (rowEl) applySuccessState(rowEl);
           // Find rule for this item and record usage
           const pair = matchedItems.find((p) => p.item.id === itemId);
@@ -927,7 +884,7 @@ function buildBulkSubmitHandler(
             const pair = matchedItems.find((p) => p.item.id === itemId);
             if (pair) {
               applyErrorState(rowEl, errorMsg, () => {
-                submitOne(pair.item, pair.rule, claimId, state.dryRun, rowEl);
+                submitOne(pair.item, pair.rule, claimId, rowEl);
               });
             }
           }
@@ -945,9 +902,7 @@ function buildBulkSubmitHandler(
 
     // Build summary section
     const summaryEl = el('div', { class: 'ck-summary' });
-    const summaryText = state.dryRun
-      ? `Dry-run complete: ${matchedItems.length} items previewed`
-      : `${submitted} submitted, ${failed} failed`;
+    const summaryText = `${submitted} submitted, ${failed} failed`;
     summaryEl.appendChild(el('div', {}, summaryText));
 
     const reloadBtn = el('button', { class: 'ck-reload-btn' }, 'Reload Page');
@@ -984,7 +939,6 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   const state: PanelState = {
     items: { matched: [], unmatched: [] },
     claimId,
-    dryRun: false,
     submitting: false,
     submittedCount: 0,
     failedCount: 0,
@@ -1001,15 +955,6 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   titleBlock.appendChild(titleText);
   titleBlock.appendChild(contextText);
 
-  // Dry-run toggle
-  const dryRunLabel = el('label', { class: 'ck-dry-run-label' });
-  const dryRunCheckbox = el('input', { type: 'checkbox' } as any);
-  dryRunCheckbox.addEventListener('change', () => {
-    state.dryRun = (dryRunCheckbox as HTMLInputElement).checked;
-  });
-  dryRunLabel.appendChild(dryRunCheckbox);
-  dryRunLabel.appendChild(document.createTextNode(' Dry-run'));
-
   // Minimize and close buttons
   const headerActions = el('div', { class: 'ck-panel-header-actions' });
   const minimizeBtn = el('button', { class: 'ck-header-btn' }, '−');
@@ -1023,7 +968,6 @@ export function createPanel(container: HTMLElement, ctx: any): void {
     panelEl.remove();
   });
 
-  headerActions.appendChild(dryRunLabel);
   headerActions.appendChild(minimizeBtn);
   headerActions.appendChild(closeBtn);
 
@@ -1168,7 +1112,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       };
 
       for (const item of unmatched) {
-        const rowEl = renderUnmatchedRow(item, cId, state.dryRun, rules, handleAssign);
+        const rowEl = renderUnmatchedRow(item, cId, rules, handleAssign);
         unmatchedSection.appendChild(rowEl);
       }
 

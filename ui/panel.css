@@ -109,16 +109,7 @@
   color: #374151;
 }
 
-/* Dry-run toggle label */
-.ck-dry-run-label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  color: #6b7280;
-  user-select: none;
-  margin-right: 4px;
+/* (dry-run removed) */
 }
 
 /* ============================================================
@@ -177,11 +168,6 @@
   cursor: default;
 }
 
-.ck-item-row.ck-dryrun {
-  background: #fffbeb;
-  cursor: default;
-  opacity: 0.8;
-}
 
 /* Row layout sub-elements */
 .ck-item-primary {
