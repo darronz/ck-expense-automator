@@ -24,6 +24,8 @@
     "wxt": "^0.20.20"
   },
   "devDependencies": {
+    "@vitest/browser": "^4.1.2",
+    "jsdom": "^29.0.1",
     "typescript": "5.7",
     "vitest": "^4.1.2"
   }
