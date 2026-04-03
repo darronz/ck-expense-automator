@@ -768,11 +768,11 @@ function buildMatchedRow(
 
     // Populate category dropdown
     const catSelect = editForm.querySelector('.ck-edit-category') as HTMLSelectElement;
-    for (const [id, label] of Object.entries(CATEGORIES)) {
+    for (const cat of CATEGORIES) {
       const opt = document.createElement('option');
-      opt.value = id;
-      opt.textContent = label;
-      if (id === rule.nominalId) opt.selected = true;
+      opt.value = cat.id;
+      opt.textContent = cat.label;
+      if (cat.id === rule.nominalId) opt.selected = true;
       catSelect.appendChild(opt);
     }
 
