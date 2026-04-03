@@ -961,14 +961,14 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   const closeBtn = el('button', { class: 'ck-header-btn' }, '×');
 
   let minimized = false;
-  minimizeBtn.addEventListener('click', () => {
-    minimized = !minimized;
+
+  function applyMinimizedState(isMinimized: boolean): void {
+    minimized = isMinimized;
     bodyEl.style.display = minimized ? 'none' : '';
     footerEl.style.display = minimized ? 'none' : '';
     progressSection.style.display = minimized ? 'none' : '';
     minimizeBtn.textContent = minimized ? '+' : '−';
 
-    // Reposition: centered when expanded, bottom-right when minimized
     const containerEl = panelEl.parentElement;
     const htmlWrapper = containerEl?.parentElement;
     if (htmlWrapper) {
@@ -981,6 +981,23 @@ export function createPanel(container: HTMLElement, ctx: any): void {
         (htmlWrapper as HTMLElement).style.justifyContent = 'center';
         (htmlWrapper as HTMLElement).style.padding = '0';
       }
+    }
+  }
+
+  // Restore persisted state
+  if (typeof browser !== 'undefined' && browser.storage?.local) {
+    browser.storage.local.get('panelMinimized').then((result: Record<string, unknown>) => {
+      if (result['panelMinimized'] === true) {
+        applyMinimizedState(true);
+      }
+    });
+  }
+
+  minimizeBtn.addEventListener('click', () => {
+    applyMinimizedState(!minimized);
+    // Persist
+    if (typeof browser !== 'undefined' && browser.storage?.local) {
+      browser.storage.local.set({ panelMinimized: minimized });
     }
   });
   closeBtn.addEventListener('click', () => {
