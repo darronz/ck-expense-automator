@@ -958,7 +958,6 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   // Minimize and close buttons
   const headerActions = el('div', { class: 'ck-panel-header-actions' });
   const minimizeBtn = el('button', { class: 'ck-header-btn' }, '−');
-  const closeBtn = el('button', { class: 'ck-header-btn' }, '×');
 
   let minimized = false;
 
@@ -1000,12 +999,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       browser.storage.local.set({ panelMinimized: minimized });
     }
   });
-  closeBtn.addEventListener('click', () => {
-    panelEl.remove();
-  });
-
   headerActions.appendChild(minimizeBtn);
-  headerActions.appendChild(closeBtn);
 
   headerEl.appendChild(titleBlock);
   headerEl.appendChild(headerActions);
