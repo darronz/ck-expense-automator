@@ -254,7 +254,9 @@ function attachEventListeners(): void {
 }
 
 async function handleTableClick(e: Event): Promise<void> {
-  const target = e.target as HTMLElement;
+  // Walk up from click target to find the button with data-action (click may hit text node or inner span)
+  const target = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+  if (!target) return;
   const action = target.dataset.action;
   const ruleId = target.dataset.ruleId;
   if (!action || !ruleId) return;
