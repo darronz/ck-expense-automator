@@ -1152,6 +1152,11 @@ export function createPanel(container: HTMLElement, ctx: any): void {
         const newRow = buildMatchedRow(assignedItem, assignedRule, cId, state, ctx, updateFooter);
         matchedSection.appendChild(newRow);
 
+        // Show Submit All button if not already present
+        if (!matchedHeader.querySelector('.ck-submit-btn')) {
+          matchedHeader.appendChild(submitAllBtn);
+        }
+
         // Update counts
         const mc = state.items.matched.length;
         const uc = state.items.unmatched.length;
