@@ -951,7 +951,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   const titleBlock = el('div', { class: 'ck-panel-title' });
   const titleText = el('div', {}, 'CK Expense Automator');
-  const contextText = el('div', { class: 'ck-panel-context' }, 'Click "Scan Items" to start');
+  const contextText = el('div', { class: 'ck-panel-context' }, '');
   titleBlock.appendChild(titleText);
   titleBlock.appendChild(contextText);
 
