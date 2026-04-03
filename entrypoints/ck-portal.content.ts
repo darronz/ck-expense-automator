@@ -10,30 +10,16 @@ export default defineContentScript({
   runAt: 'document_idle',
 
   main() {
-    console.log('[CK Expense Automator] Content script loaded (MAIN world)');
     waitForJQuery()
-      .then((hasDataTables) => {
-        if (hasDataTables) {
-          console.log('[CK Expense Automator] jQuery and DataTables API confirmed available');
-        } else {
-          console.log('[CK Expense Automator] jQuery available but DataTables not yet loaded');
-        }
-
-        // Listen for scan requests from the isolated-world panel
+      .then(() => {
         window.addEventListener('message', async (event: MessageEvent) => {
           if (event.data?.type !== 'ck:scan-items') return;
 
           const claimId = event.data.payload?.claimId;
-          if (!claimId) {
-            console.warn('[CK Expense Automator] No claimId in scan request');
-            return;
-          }
+          if (!claimId) return;
 
-          console.log(`[CK Expense Automator] Scanning suspense items for claimId: ${claimId}`);
           try {
             const items = await readSuspenseItems(claimId);
-            console.log(`[CK Expense Automator] Read ${items.length} suspense items`);
-
             window.postMessage({
               type: 'ck:items-ready',
               payload: { claimId, items },
@@ -46,8 +32,6 @@ export default defineContentScript({
             }, '*');
           }
         });
-
-        console.log('[CK Expense Automator] Ready — waiting for scan request from panel');
       })
       .catch((err) => {
         console.error('[CK Expense Automator] jQuery not found:', err);

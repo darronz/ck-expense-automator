@@ -343,8 +343,6 @@ async function handleTableClick(e: Event): Promise<void> {
   const ruleId = target.dataset.ruleId;
   if (!action || !ruleId) return;
 
-  console.log(`[Options] Action: ${action}, ruleId: ${ruleId}`);
-
   if (action === 'edit') {
     handleEditClick(ruleId);
   } else if (action === 'save') {

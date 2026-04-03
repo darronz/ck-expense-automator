@@ -124,9 +124,6 @@ export default defineContentScript({
   },
 });
 
-function handleItemsReady(data: { claimId: string; items: SuspenseItem[] }): void {
-  console.log(
-    `[CK Expense Automator] Panel received ${data.items.length} suspense items for claimId: ${data.claimId}`,
-  );
-  // TODO: Phase 3 panel receives items — createPanel already handles its own state via the event bridge
+function handleItemsReady(_data: { claimId: string; items: SuspenseItem[] }): void {
+  // Data is handled by createPanel's own postMessage listener
 }

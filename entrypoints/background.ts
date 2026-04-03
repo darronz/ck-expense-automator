@@ -7,7 +7,7 @@ export default defineBackground(() => {
       const existing = await browser.storage.sync.get('rules');
       if (!existing['rules']) {
         await browser.storage.sync.set({ rules: [] });
-        console.log('[CK Expense Automator] Initialized with empty rule set — import rules via Options page');
+        // Empty rule set — user imports via Options page
       }
     }
   });
