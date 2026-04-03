@@ -2,7 +2,8 @@
 // Portal interaction layer — MAIN world only. No extension APIs (no browser.*, no chrome.*).
 // Assumes window.$ (jQuery) and DataTables are available on the page.
 
-import type { SuspenseItem, SubmissionResult } from './types';
+import type { SuspenseItem, SubmissionResult, ExpenseSubmission } from './types';
+import { buildPayload } from './expense-engine';
 
 // Re-export SubmissionResult so callers can import from a single module
 export type { SubmissionResult };
@@ -153,4 +154,140 @@ export async function readSuspenseItems(_claimId: string): Promise<SuspenseItem[
   }
 
   return items;
+}
+
+// ---------------------------------------------------------------------------
+// Validation error parsing
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse ASP.NET MVC validation error HTML and return an array of error messages.
+ *
+ * Checks two standard ASP.NET MVC validation markers:
+ * - `.validation-summary-errors li` — summary-level errors (e.g. VAT amount too high)
+ * - `.field-validation-error`       — field-level errors (e.g. Description required)
+ *
+ * Deduplicates: if the same message appears in both, it is returned only once.
+ * Returns an empty array when the HTML contains no validation errors.
+ *
+ * This is a pure function — suitable for unit testing without browser or network.
+ */
+export function parseValidationErrors(html: string): string[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const errors: string[] = [];
+
+  // Validation summary container (.validation-summary-errors contains <ul><li>...)
+  const summaryDiv = doc.querySelector('.validation-summary-errors');
+  if (summaryDiv) {
+    summaryDiv.querySelectorAll('li').forEach((li) => {
+      const text = li.textContent?.trim();
+      if (text) errors.push(text);
+    });
+  }
+
+  // Individual field validation spans
+  doc.querySelectorAll('.field-validation-error').forEach((span) => {
+    const text = span.textContent?.trim();
+    if (text && !errors.includes(text)) errors.push(text);
+  });
+
+  return errors;
+}
+
+// ---------------------------------------------------------------------------
+// Session expiry detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect whether a fetch() response indicates session expiry.
+ *
+ * ASP.NET MVC redirects to the login page when the session expires.
+ * fetch() follows redirects by default, so `response.redirected === true`
+ * and `response.url` will contain the final redirect target.
+ *
+ * Returns true when:
+ * - The response was redirected AND
+ * - The final URL contains '/login' or '/account/' (case-insensitive), OR
+ * - The final URL is not on the portal domain (left the site entirely)
+ */
+export function detectSessionExpiry(response: Response): boolean {
+  if (!response.redirected) return false;
+  const url = response.url.toLowerCase();
+  return (
+    url.includes('/login') ||
+    url.includes('/account/') ||
+    !url.startsWith('https://portal.churchill-knight.co.uk/')
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Response parsing (internal)
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a fetch() Response from a CK portal expense submission.
+ *
+ * Cases:
+ * 1. Session expired (redirect to login) → SESSION_EXPIRED error
+ * 2. PRG success (redirect back to expense page) → success
+ * 3. HTTP 200 with validation errors in body → VALIDATION_ERROR
+ * 4. HTTP 200 with no errors → success
+ */
+async function parseSubmissionResponse(response: Response): Promise<SubmissionResult> {
+  if (detectSessionExpiry(response)) {
+    return { success: false, error: 'SESSION_EXPIRED' };
+  }
+
+  // PRG pattern: successful POST triggers a redirect back to the expense page
+  if (response.redirected) {
+    return { success: true };
+  }
+
+  // Non-redirect 200: parse the body for ASP.NET MVC validation error markers
+  const html = await response.text();
+  const errors = parseValidationErrors(html);
+  if (errors.length > 0) {
+    return { success: false, error: 'VALIDATION_ERROR', validationMessages: errors };
+  }
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Expense submission
+// ---------------------------------------------------------------------------
+
+/**
+ * Submit a single expense item to the CK portal via fetch() POST.
+ *
+ * Uses `credentials: 'same-origin'` so the browser forwards the existing
+ * authenticated session cookie — no manual cookie extraction required.
+ *
+ * The payload is built by `buildPayload()` from lib/expense-engine.ts which
+ * handles all the ASP.NET MVC form field requirements (checkbox double-field
+ * pattern, VAT calculation, fixed field values, etc.).
+ *
+ * Returns a structured SubmissionResult:
+ * - { success: true }                                          — expense submitted
+ * - { success: false, error: 'NETWORK_ERROR' }                — fetch() threw
+ * - { success: false, error: 'SESSION_EXPIRED' }              — redirected to login
+ * - { success: false, error: 'VALIDATION_ERROR', validationMessages: [...] } — form rejected
+ */
+export async function submitExpense(submission: ExpenseSubmission): Promise<SubmissionResult> {
+  const payload = buildPayload(submission);
+
+  let response: Response;
+  try {
+    response = await fetch(`/ExpenseItems/Create?claimId=${submission.claimId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: payload.toString(),
+      credentials: 'same-origin',
+    });
+  } catch (err) {
+    return { success: false, error: 'NETWORK_ERROR' };
+  }
+
+  return parseSubmissionResponse(response);
 }
