@@ -27,22 +27,22 @@
 
 ### Injected Panel
 
-- [ ] **PANEL-01**: Shadow DOM floating panel is injected on CK ExpenseItems pages, isolated from portal CSS
+- [x] **PANEL-01**: Shadow DOM floating panel is injected on CK ExpenseItems pages, isolated from portal CSS
 - [ ] **PANEL-02**: Panel displays matched items with date, amount, rule name, category, vendor, and VAT summary
 - [ ] **PANEL-03**: User can submit individual matched items via per-row [Submit] button
 - [ ] **PANEL-04**: User can submit all matched items in bulk via [Submit All] button with progress indicator
 - [ ] **PANEL-05**: Submitted items show green success state; failed items show error with [Retry] button
-- [ ] **PANEL-06**: Panel shows claim context (month/year) and item counts (matched/unmatched) in header
+- [x] **PANEL-06**: Panel shows claim context (month/year) and item counts (matched/unmatched) in header
 - [ ] **PANEL-07**: Dry-run / preview mode toggle shows what would be submitted without actually submitting
-- [ ] **PANEL-08**: Foreign currency amounts are displayed alongside GBP amounts where present in bank descriptions
+- [x] **PANEL-08**: Foreign currency amounts are displayed alongside GBP amounts where present in bank descriptions
 
 ### Unmatched Item Handling
 
 - [ ] **UNMT-01**: Unmatched items show an inline assignment form with category dropdown, reason, vendor, and VAT fields
 - [ ] **UNMT-02**: "Save as rule" checkbox (default checked) auto-creates a new rule from the manual submission
-- [ ] **UNMT-03**: Auto-derived match pattern from vendor name is shown and editable before saving
-- [ ] **UNMT-04**: Category dropdown shows most-used categories at the top
-- [ ] **UNMT-05**: VAT divisibility hint shown when gross amount is divisible by 1.2
+- [x] **UNMT-03**: Auto-derived match pattern from vendor name is shown and editable before saving
+- [x] **UNMT-04**: Category dropdown shows most-used categories at the top
+- [x] **UNMT-05**: VAT divisibility hint shown when gross amount is divisible by 1.2
 
 ### Extension Pages
 
@@ -95,19 +95,19 @@
 | PORT-04 | Phase 2 | Complete |
 | PORT-05 | Phase 2 | Complete |
 | PORT-06 | Phase 2 | Complete |
-| PANEL-01 | Phase 3 | Pending |
+| PANEL-01 | Phase 3 | Complete |
 | PANEL-02 | Phase 3 | Pending |
 | PANEL-03 | Phase 3 | Pending |
 | PANEL-04 | Phase 3 | Pending |
 | PANEL-05 | Phase 3 | Pending |
-| PANEL-06 | Phase 3 | Pending |
+| PANEL-06 | Phase 3 | Complete |
 | PANEL-07 | Phase 3 | Pending |
-| PANEL-08 | Phase 3 | Pending |
+| PANEL-08 | Phase 3 | Complete |
 | UNMT-01 | Phase 3 | Pending |
 | UNMT-02 | Phase 3 | Pending |
-| UNMT-03 | Phase 3 | Pending |
-| UNMT-04 | Phase 3 | Pending |
-| UNMT-05 | Phase 3 | Pending |
+| UNMT-03 | Phase 3 | Complete |
+| UNMT-04 | Phase 3 | Complete |
+| UNMT-05 | Phase 3 | Complete |
 | EXT-01 | Phase 4 | Pending |
 | EXT-02 | Phase 4 | Pending |
 
