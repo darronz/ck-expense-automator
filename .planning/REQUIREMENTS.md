@@ -81,41 +81,41 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PORT-01 | — | Pending |
-| PORT-02 | — | Pending |
-| PORT-03 | — | Pending |
-| PORT-04 | — | Pending |
-| PORT-05 | — | Pending |
-| PORT-06 | — | Pending |
-| RULE-01 | — | Pending |
-| RULE-02 | — | Pending |
-| RULE-03 | — | Pending |
-| RULE-04 | — | Pending |
-| RULE-05 | — | Pending |
-| RULE-06 | — | Pending |
-| RULE-07 | — | Pending |
-| RULE-08 | — | Pending |
-| PANEL-01 | — | Pending |
-| PANEL-02 | — | Pending |
-| PANEL-03 | — | Pending |
-| PANEL-04 | — | Pending |
-| PANEL-05 | — | Pending |
-| PANEL-06 | — | Pending |
-| PANEL-07 | — | Pending |
-| PANEL-08 | — | Pending |
-| UNMT-01 | — | Pending |
-| UNMT-02 | — | Pending |
-| UNMT-03 | — | Pending |
-| UNMT-04 | — | Pending |
-| UNMT-05 | — | Pending |
-| EXT-01 | — | Pending |
-| EXT-02 | — | Pending |
+| PORT-01 | Phase 1 | Pending |
+| RULE-01 | Phase 1 | Pending |
+| RULE-02 | Phase 1 | Pending |
+| RULE-03 | Phase 1 | Pending |
+| RULE-04 | Phase 1 | Pending |
+| RULE-05 | Phase 1 | Pending |
+| RULE-06 | Phase 1 | Pending |
+| RULE-07 | Phase 1 | Pending |
+| RULE-08 | Phase 1 | Pending |
+| PORT-02 | Phase 2 | Pending |
+| PORT-03 | Phase 2 | Pending |
+| PORT-04 | Phase 2 | Pending |
+| PORT-05 | Phase 2 | Pending |
+| PORT-06 | Phase 2 | Pending |
+| PANEL-01 | Phase 3 | Pending |
+| PANEL-02 | Phase 3 | Pending |
+| PANEL-03 | Phase 3 | Pending |
+| PANEL-04 | Phase 3 | Pending |
+| PANEL-05 | Phase 3 | Pending |
+| PANEL-06 | Phase 3 | Pending |
+| PANEL-07 | Phase 3 | Pending |
+| PANEL-08 | Phase 3 | Pending |
+| UNMT-01 | Phase 3 | Pending |
+| UNMT-02 | Phase 3 | Pending |
+| UNMT-03 | Phase 3 | Pending |
+| UNMT-04 | Phase 3 | Pending |
+| UNMT-05 | Phase 3 | Pending |
+| EXT-01 | Phase 4 | Pending |
+| EXT-02 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-03*
-*Last updated: 2026-04-03 after initial definition*
+*Last updated: 2026-04-03 after roadmap creation*
