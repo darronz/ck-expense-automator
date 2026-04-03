@@ -245,10 +245,18 @@ function attachEventListeners(): void {
     }
   });
 
-  // Reset to defaults
-  document.getElementById('btn-reset')?.addEventListener('click', () => {
-    if (window.confirm('Reset ALL rules to defaults? This will delete all your custom rules.')) {
+  // Reset to defaults — inline confirm
+  const resetBtn = document.getElementById('btn-reset');
+  resetBtn?.addEventListener('click', () => {
+    if (resetBtn.textContent === 'Are you sure?') {
       saveRules(DEFAULT_RULES).then(() => initPage());
+    } else {
+      resetBtn.textContent = 'Are you sure?';
+      resetBtn.classList.add('btn-delete');
+      setTimeout(() => {
+        resetBtn.textContent = 'Reset to Defaults';
+        resetBtn.classList.remove('btn-delete');
+      }, 3000);
     }
   });
 }
@@ -261,6 +269,8 @@ async function handleTableClick(e: Event): Promise<void> {
   const ruleId = target.dataset.ruleId;
   if (!action || !ruleId) return;
 
+  console.log(`[Options] Action: ${action}, ruleId: ${ruleId}`);
+
   if (action === 'edit') {
     handleEditClick(ruleId);
   } else if (action === 'save') {
@@ -269,6 +279,10 @@ async function handleTableClick(e: Event): Promise<void> {
     handleCancelClick(ruleId);
   } else if (action === 'delete') {
     await handleDeleteClick(ruleId);
+  } else if (action === 'confirm-delete') {
+    await handleConfirmDelete(ruleId);
+  } else if (action === 'cancel-delete') {
+    handleCancelDelete(ruleId);
   }
 }
 
@@ -392,8 +406,23 @@ async function handleDeleteClick(ruleId: string): Promise<void> {
   const rule = currentRules.find((r) => r.id === ruleId);
   if (!rule) return;
 
-  if (!window.confirm(`Delete rule "${rule.name}"?`)) return;
+  // Show inline confirm instead of window.confirm (which can be blocked in extension contexts)
+  const row = document.querySelector(`tr[data-rule-id="${ruleId}"]`);
+  if (!row) return;
 
+  const actionsCell = row.querySelector('.actions-cell');
+  if (!actionsCell) return;
+
+  // Replace buttons with confirm/cancel
+  const originalHTML = actionsCell.innerHTML;
+  actionsCell.innerHTML = `
+    <span style="font-size:12px;color:#dc2626;margin-right:4px;">Delete?</span>
+    <button class="btn btn-delete" data-action="confirm-delete" data-rule-id="${ruleId}">Yes</button>
+    <button class="btn btn-cancel" data-action="cancel-delete" data-rule-id="${ruleId}">No</button>
+  `;
+}
+
+async function handleConfirmDelete(ruleId: string): Promise<void> {
   await deleteRule(ruleId);
   currentRules = currentRules.filter((r) => r.id !== ruleId);
 
@@ -404,6 +433,14 @@ async function handleDeleteClick(ruleId: string): Promise<void> {
   if (countEl) {
     countEl.textContent = `${currentRules.length} rule${currentRules.length !== 1 ? 's' : ''}`;
   }
+}
+
+function handleCancelDelete(ruleId: string): void {
+  const rule = currentRules.find((r) => r.id === ruleId);
+  if (!rule) return;
+  const row = document.querySelector(`tr[data-rule-id="${ruleId}"]`);
+  if (!row) return;
+  row.outerHTML = renderViewRow(rule);
 }
 
 // Re-attach event listeners after outerHTML replacement (delegate is on tbody, should persist)
