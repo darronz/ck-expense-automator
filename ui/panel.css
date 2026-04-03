@@ -558,6 +558,18 @@
   min-height: 0;
 }
 
+.ck-input-error {
+  border-color: #dc2626 !important;
+  outline-color: #dc2626;
+}
+
+.ck-field-error {
+  font-size: 11px;
+  color: #dc2626;
+  margin-top: 2px;
+  font-family: system-ui, sans-serif;
+}
+
 .ck-form-actions {
   display: flex;
   gap: 8px;

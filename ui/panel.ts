@@ -521,19 +521,34 @@ function renderInlineForm(
     const saveAsRule = (formEl.querySelector('[name="saveAsRule"]') as HTMLInputElement)?.checked ?? false;
     const matchPattern = ((formEl.querySelector('[name="matchPattern"]') as HTMLInputElement)?.value ?? '').trim();
 
+    // Clear previous validation errors
+    formEl.querySelectorAll('.ck-field-error').forEach(e => e.remove());
+    formEl.querySelectorAll('.ck-input-error').forEach(e => e.classList.remove('ck-input-error'));
+    errorDiv.textContent = '';
+
     // Validate
+    let valid = true;
+
+    const reasonInput = formEl.querySelector('[name="reason"]') as HTMLInputElement;
     if (!reason) {
-      errorDiv.textContent = 'Reason is required.';
-      return;
+      reasonInput?.classList.add('ck-input-error');
+      const errMsg = el('div', { class: 'ck-field-error' }, 'Reason is required');
+      reasonInput?.parentElement?.appendChild(errMsg);
+      valid = false;
     }
+
     if (hasVat && vatAmount !== null) {
       const vatCheck = validateVat(item.amount, vatAmount);
       if (!vatCheck.valid) {
-        errorDiv.textContent = vatCheck.error ?? 'Invalid VAT amount.';
-        return;
+        const vatInput = formEl.querySelector('[name="vatAmount"]') as HTMLInputElement;
+        vatInput?.classList.add('ck-input-error');
+        const errMsg = el('div', { class: 'ck-field-error' }, vatCheck.error ?? 'Invalid VAT amount');
+        vatInput?.parentElement?.appendChild(errMsg);
+        valid = false;
       }
     }
-    errorDiv.textContent = '';
+
+    if (!valid) return;
 
     // Build the rule
     const syntheticRule = buildRuleFromForm(
