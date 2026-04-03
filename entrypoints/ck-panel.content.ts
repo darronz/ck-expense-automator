@@ -54,21 +54,30 @@ export default defineContentScript({
       isolateEvents: ['keyup', 'keydown', 'keypress'],
 
       onMount(container, _shadow, shadowHost) {
-        // shadowHost is outside the shadow root — apply fixed sidebar positioning here.
-        // These styles are NOT isolated and apply to the element in the real DOM.
+        // shadowHost covers the full viewport as a positioning frame
         Object.assign(shadowHost.style, {
           position: 'fixed',
           top: '0',
-          right: '0',
-          width: '400px',
+          left: '0',
+          width: '100vw',
           height: '100vh',
-          zIndex: '999999',
+          zIndex: '2147483647',
           pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         });
 
-        // container (uiContainer) is inside the shadow root — safe to apply panel content styles.
-        container.style.pointerEvents = 'auto';
-        container.style.height = '100%';
+        // container is the centered panel — scrollable, clickable
+        Object.assign(container.style, {
+          pointerEvents: 'auto',
+          maxWidth: 'calc(100vw - 80px)',
+          maxHeight: 'calc(100vh - 80px)',
+          width: '480px',
+          overflowY: 'auto',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+        });
 
         // Store shadowHost reference for panel toggle
         shadowHostRef = shadowHost;
