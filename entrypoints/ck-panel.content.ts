@@ -4,9 +4,39 @@
 // Must NOT be set to world: 'MAIN' — createShadowRootUi calls browser.runtime.getURL()
 // which is unavailable in the MAIN world.
 
-import './ui/panel.css';
-import type { SuspenseItem } from '../lib/types';
+import '../ui/panel.css';
+import type { SuspenseItem, MatchResult } from '../lib/types';
 import { createPanel } from '../ui/panel';
+
+// ─── Module-level state (accessible by message handler) ───────────────────────
+
+let currentMatchResult: MatchResult | null = null;
+let isPanelVisible = true;
+let shadowHostRef: HTMLElement | null = null;
+
+/** Toggle panel visibility without unmounting. */
+function togglePanelVisibility(): void {
+  if (!shadowHostRef) return;
+  isPanelVisible = !isPanelVisible;
+  shadowHostRef.style.display = isPanelVisible ? '' : 'none';
+}
+
+// ─── Message handler ──────────────────────────────────────────────────────────
+
+browser.runtime.onMessage.addListener((message: { type: string }, _sender, sendResponse) => {
+  if (message.type === 'CK_GET_STATE') {
+    sendResponse({
+      matched: currentMatchResult?.matched.length ?? 0,
+      unmatched: currentMatchResult?.unmatched.length ?? 0,
+      panelVisible: isPanelVisible,
+    });
+    return true;
+  }
+  if (message.type === 'CK_TOGGLE_PANEL') {
+    togglePanelVisibility();
+    return true;
+  }
+});
 
 export default defineContentScript({
   matches: ['https://portal.churchill-knight.co.uk/ExpenseItems/*'],
@@ -40,6 +70,9 @@ export default defineContentScript({
         container.style.pointerEvents = 'auto';
         container.style.height = '100%';
 
+        // Store shadowHost reference for panel toggle
+        shadowHostRef = shadowHost;
+
         createPanel(container, ctx);
       },
     });
@@ -57,6 +90,13 @@ export default defineContentScript({
         if (event instanceof CustomEvent) handleItemsReady(event.detail);
       });
     }
+
+    // Listen for match result updates from the panel (via custom event)
+    ctx.addEventListener(document, 'ck:match-result' as any, (event: Event) => {
+      if (event instanceof CustomEvent) {
+        currentMatchResult = event.detail as MatchResult;
+      }
+    });
   },
 });
 
