@@ -615,8 +615,8 @@ function renderUnmatchedRow(
     toggleIcon.textContent = isOpen ? '−' : '+';
   });
 
-  primaryRow.appendChild(toggleIcon);
   primaryRow.appendChild(left);
+  primaryRow.appendChild(toggleIcon);
   rowEl.appendChild(primaryRow);
 
   // Build inline form (hidden until ck-form-open applied)
