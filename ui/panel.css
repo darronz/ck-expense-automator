@@ -494,7 +494,8 @@
 
 .ck-form-row select,
 .ck-form-row input[type="text"],
-.ck-form-row input[type="number"] {
+.ck-form-row input[type="number"],
+.ck-match-pattern-row input[type="text"] {
   display: block;
   width: 100%;
   padding: 6px 8px;
