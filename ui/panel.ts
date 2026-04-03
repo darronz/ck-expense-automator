@@ -464,7 +464,12 @@ function renderInlineForm(
 
   // Match pattern input (only visible when saveAsRule checked)
   const patternRow = el('div', { class: 'ck-match-pattern-row ck-visible' });
-  const patternLabel = el('label', {}, 'Match pattern (regex)');
+  const patternLabel = el('label', {});
+  patternLabel.appendChild(document.createTextNode('Match pattern ('));
+  const regexLink = el('a', { href: 'https://regexone.com', target: '_blank' } as any, 'regex');
+  Object.assign(regexLink.style, { color: '#2563eb', textDecoration: 'underline' });
+  patternLabel.appendChild(regexLink);
+  patternLabel.appendChild(document.createTextNode(')'));
   const fallbackDesc = item.description.split('\n').pop()?.trim() ?? item.description;
   const defaultPattern = deriveMatchPattern(vendorFromDesc ?? fallbackDesc);
   const patternInput = el('input', {
