@@ -881,7 +881,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   const titleBlock = el('div', { class: 'ck-panel-title' });
   const titleText = el('div', {}, 'CK Expense Automator');
-  const contextText = el('div', { class: 'ck-panel-context' }, 'Loading...');
+  const contextText = el('div', { class: 'ck-panel-context' }, 'Click "Scan Items" to start');
   titleBlock.appendChild(titleText);
   titleBlock.appendChild(contextText);
 
@@ -932,14 +932,32 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   // ── Footer ────────────────────────────────────────────────────────────────
 
   const footerEl = el('div', { class: 'ck-panel-footer' });
-  const footerText = el('span', {}, 'Submitted: 0/0 · Loading...');
+  const footerText = el('span', {}, 'Ready');
   footerEl.appendChild(footerText);
   panelEl.appendChild(footerEl);
 
+  // ── Scan button (initial state) ──────────────────────────────────────────
+
+  const scanSection = el('div', { class: 'ck-scan-section' });
+  const scanBtn = el('button', { class: 'ck-scan-btn' }, 'Scan Items');
+  const scanHint = el('div', { class: 'ck-scan-hint' }, 'Reads your unmapped bank transactions from the table below');
+  scanSection.appendChild(scanBtn);
+  scanSection.appendChild(scanHint);
+  bodyEl.appendChild(scanSection);
+
+  scanBtn.addEventListener('click', () => {
+    scanBtn.textContent = 'Scanning...';
+    (scanBtn as HTMLButtonElement).disabled = true;
+    contextText.textContent = 'Scanning suspense items...';
+    // Tell MAIN world to read the DataTable
+    window.postMessage({ type: 'ck:scan-items', payload: { claimId } }, '*');
+  });
+
   // ── Load data and render ──────────────────────────────────────────────────
 
-  // Listen for suspense items from the MAIN world
   function handleItemsReady(detail: { claimId: string; items: SuspenseItem[] }): void {
+    // Remove scan section once data arrives
+    scanSection.remove();
     const { claimId: cId, items } = detail;
     state.claimId = cId;
 
@@ -1017,6 +1035,11 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   window.addEventListener('message', (event: MessageEvent) => {
     if (event.data?.type === 'ck:items-ready' && event.data?.payload) {
       handleItemsReady(event.data.payload);
+    }
+    if (event.data?.type === 'ck:scan-error') {
+      scanBtn.textContent = 'Scan Items';
+      (scanBtn as HTMLButtonElement).disabled = false;
+      contextText.textContent = 'Scan failed — see console for details';
     }
   });
 }
