@@ -366,7 +366,7 @@ describe('submitAllWithDelay', () => {
 describe('buildRuleFromForm', () => {
   it('creates a rule with correct fields for no-VAT case', () => {
     const rule = buildRuleFromForm('Supabase', '68', 'Cloud DB', false, null, 'supabase');
-    expect(rule.name).toBe('Supabase');
+    expect(rule.name).toBe('Cloud DB');
     expect(rule.matchPattern).toBe('supabase');
     expect(rule.matchFlags).toBe('i');
     expect(rule.nominalId).toBe('68');

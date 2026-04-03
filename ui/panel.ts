@@ -185,7 +185,7 @@ export function buildRuleFromForm(
 
   return {
     id,
-    name: vendor,
+    name: description || vendor,
     matchPattern,
     matchFlags: 'i',
     nominalId,
