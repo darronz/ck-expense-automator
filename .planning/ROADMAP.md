@@ -29,11 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Default example rules (Virgin Media, Supabase, LinkedIn, etc.) are pre-loaded on first install
   4. Expense engine correctly matches a bank description against enabled rules, calculates VAT amounts, and builds a complete form payload with all required fields
   5. VAT validation rejects a value exceeding 20% of net amount before any submission attempt
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: WXT project scaffold with TypeScript, manifest.json with MAIN world content script, and verified DataTable API access on live portal
-- [ ] 01-02: rules-store.js (chrome.storage.sync CRUD, default rules, onInstalled), expense-engine.js (regex matching, VAT calculation, payload builder), smart vendor extraction
+- [ ] 01-01-PLAN.md — WXT scaffold, TypeScript config, vitest infrastructure, MAIN world content script, and manual PORT-01 verification checkpoint
+- [ ] 01-02-PLAN.md — lib/types.ts interfaces, rules-store.ts (chrome.storage.sync CRUD + DEFAULT_RULES + onInstalled), expense-engine.ts (matchRule, validateVat, buildPayload), vendor-extractor.ts, full unit test coverage
 
 ### Phase 2: Portal Integration and Submission
 **Goal**: The extension can read all suspense items from the CK DataTable and submit a single expense via fetch() POST with correct error detection
