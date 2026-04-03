@@ -951,7 +951,8 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   const titleBlock = el('div', { class: 'ck-panel-title' });
   const titleText = el('div', {}, 'CK Expense Automator');
-  const contextText = el('div', { class: 'ck-panel-context' }, '');
+  const contextText = el('div', { class: 'ck-panel-context' });
+  contextText.style.display = 'none';
   titleBlock.appendChild(titleText);
   titleBlock.appendChild(contextText);
 
@@ -1038,7 +1039,8 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   scanBtn.addEventListener('click', () => {
     scanBtn.textContent = 'Scanning...';
     (scanBtn as HTMLButtonElement).disabled = true;
-    contextText.textContent = 'Scanning suspense items...';
+    contextText.textContent = 'Scanning...';
+    contextText.style.display = '';
     // Tell MAIN world to read the DataTable
     window.postMessage({ type: 'ck:scan-items', payload: { claimId } }, '*');
   });
