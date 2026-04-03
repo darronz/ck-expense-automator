@@ -951,10 +951,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   const titleBlock = el('div', { class: 'ck-panel-title' });
   const titleText = el('div', {}, 'CK Expense Automator');
-  const contextText = el('div', { class: 'ck-panel-context' });
-  contextText.style.display = 'none';
   titleBlock.appendChild(titleText);
-  titleBlock.appendChild(contextText);
 
   // Minimize and close buttons
   const headerActions = el('div', { class: 'ck-panel-header-actions' });
@@ -1039,8 +1036,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   scanBtn.addEventListener('click', () => {
     scanBtn.textContent = 'Scanning...';
     (scanBtn as HTMLButtonElement).disabled = true;
-    contextText.textContent = 'Scanning...';
-    contextText.style.display = '';
+    footerText.textContent = 'Scanning...';
     // Tell MAIN world to read the DataTable
     window.postMessage({ type: 'ck:scan-items', payload: { claimId } }, '*');
   });
@@ -1060,12 +1056,8 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       const { matched, unmatched } = matchResult;
       const total = matched.length + unmatched.length;
 
-      // Update header context
       const ctx2 = parseClaimContext(cId, items);
-      contextText.textContent =
-        `Claim: ${ctx2.month} ${ctx2.year} · ${matched.length} matched / ${unmatched.length} unmatched`;
-
-      footerText.textContent = `Submitted: 0/${total} · Ready`;
+      footerText.textContent = `${matched.length} matched · ${unmatched.length} unmatched · Ready`;
 
       // Update footer after each individual submit
       const updateFooter = () => {
@@ -1138,9 +1130,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
         const uc = state.items.unmatched.length;
         matchedHeading.textContent = `MATCHED (${mc})`;
         unmatchedHeading.textContent = `UNMATCHED (${uc})`;
-        contextText.textContent =
-          `Claim: ${ctx2.month} ${ctx2.year} · ${mc} matched / ${uc} unmatched`;
-        footerText.textContent = `Submitted: ${state.submittedCount}/${mc + uc} · Ready`;
+        footerText.textContent = `${mc} matched · ${uc} unmatched · Ready`;
       };
 
       for (const item of unmatched) {
@@ -1150,7 +1140,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
       bodyEl.appendChild(unmatchedSection);
     }).catch((err: Error) => {
-      contextText.textContent = `Error loading rules: ${err.message}`;
+      footerText.textContent = `Error loading rules: ${err.message}`;
     });
   }
 
@@ -1162,7 +1152,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
     if (event.data?.type === 'ck:scan-error') {
       scanBtn.textContent = 'Scan Items';
       (scanBtn as HTMLButtonElement).disabled = false;
-      contextText.textContent = 'Scan failed — see console for details';
+      footerText.textContent = 'Scan failed — see console for details';
     }
   });
 }
