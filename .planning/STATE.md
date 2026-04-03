@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 03-injected-panel-ui/03-03-PLAN.md
-last_updated: "2026-04-03T10:48:48.839Z"
+status: complete
+stopped_at: Completed 04-extension-pages-and-polish/04-01-PLAN.md
+last_updated: "2026-04-03T11:25:00.000Z"
 last_activity: 2026-04-03 — Roadmap created, phases derived from requirements
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 50
+  total_plans: 8
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: 0 of 2 in current phase
 Status: Ready to plan
 Last activity: 2026-04-03 — Roadmap created, phases derived from requirements
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03-injected-panel-ui P01 | 3 | 2 tasks | 6 files |
 | Phase 03-injected-panel-ui P02 | 12 | 2 tasks | 3 files |
 | Phase 03-injected-panel-ui P03 | 8 | 2 tasks | 3 files |
+| Phase 04-extension-pages-and-polish P01 | 25 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 03-injected-panel-ui]: Row ID convention ck-row-{item.id} for direct DOM lookup in bulk submit callbacks
 - [Phase 03-injected-panel-ui]: submitUnmatched() skips addRule() in dry-run mode — no side effects in preview, consistent with matched-item dry-run behaviour
 - [Phase 03-injected-panel-ui]: .ck-form-open CSS class toggle controls inline form visibility — no JS display manipulation, consistent with .ck-expanded pattern
+- [Phase 04-extension-pages-and-polish]: tabs permission added to manifest — browser.tabs.query requires this to access tab.url for CK page detection in popup
+- [Phase 04-extension-pages-and-polish]: browser.runtime.onMessage registered at module level in ck-panel.content.ts (outside defineContentScript main) — handler available immediately, not deferred
+- [Phase 04-extension-pages-and-polish]: Options page uses outerHTML replacement for inline edit row transitions — simpler than node reference management for low-frequency interactions
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:42:45.705Z
-Stopped at: Completed 03-injected-panel-ui/03-03-PLAN.md
+Last session: 2026-04-03T11:25:00.000Z
+Stopped at: Completed 04-extension-pages-and-polish/04-01-PLAN.md
 Resume file: None

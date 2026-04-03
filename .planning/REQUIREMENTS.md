@@ -46,8 +46,8 @@
 
 ### Extension Pages
 
-- [ ] **EXT-01**: Popup shows current page status (CK portal detected or not), matched/unmatched item counts, and link to options
-- [ ] **EXT-02**: Options page provides full rule CRUD: add, edit, delete, enable/disable rules with all fields
+- [x] **EXT-01**: Popup shows current page status (CK portal detected or not), matched/unmatched item counts, and link to options
+- [x] **EXT-02**: Options page provides full rule CRUD: add, edit, delete, enable/disable rules with all fields
 
 ## v2 Requirements
 
@@ -108,8 +108,8 @@
 | UNMT-03 | Phase 3 | Complete |
 | UNMT-04 | Phase 3 | Complete |
 | UNMT-05 | Phase 3 | Complete |
-| EXT-01 | Phase 4 | Pending |
-| EXT-02 | Phase 4 | Pending |
+| EXT-01 | Phase 4 | Complete |
+| EXT-02 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 29 total
