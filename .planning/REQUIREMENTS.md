@@ -10,9 +10,9 @@
 - [x] **PORT-01**: Content script injects via MAIN world and can access the page's jQuery and DataTables instances
 - [x] **PORT-02**: Extension programmatically sets Payment Type to "Business account" and ticks "Map to Suspense Items" to reveal the DataTable
 - [x] **PORT-03**: Extension reads all suspense items from the DataTable (ID, date, description, amount) with try/finally cleanup
-- [ ] **PORT-04**: Extension submits expenses via fetch() POST with correct ASP.NET form encoding (including checkbox double-field pattern)
-- [ ] **PORT-05**: Extension parses response body for ASP.NET validation errors (not just HTTP status)
-- [ ] **PORT-06**: Extension detects session expiry (redirect to login page) and notifies user gracefully
+- [x] **PORT-04**: Extension submits expenses via fetch() POST with correct ASP.NET form encoding (including checkbox double-field pattern)
+- [x] **PORT-05**: Extension parses response body for ASP.NET validation errors (not just HTTP status)
+- [x] **PORT-06**: Extension detects session expiry (redirect to login page) and notifies user gracefully
 
 ### Rule Engine
 
@@ -92,9 +92,9 @@
 | RULE-08 | Phase 1 | Complete |
 | PORT-02 | Phase 2 | Complete |
 | PORT-03 | Phase 2 | Complete |
-| PORT-04 | Phase 2 | Pending |
-| PORT-05 | Phase 2 | Pending |
-| PORT-06 | Phase 2 | Pending |
+| PORT-04 | Phase 2 | Complete |
+| PORT-05 | Phase 2 | Complete |
+| PORT-06 | Phase 2 | Complete |
 | PANEL-01 | Phase 3 | Pending |
 | PANEL-02 | Phase 3 | Pending |
 | PANEL-03 | Phase 3 | Pending |
