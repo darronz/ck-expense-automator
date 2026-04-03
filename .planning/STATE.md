@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation-and-data-layer/01-02-PLAN.md
-last_updated: "2026-04-03T09:34:49.829Z"
+stopped_at: Completed 02-portal-integration-and-submission/02-01-PLAN.md
+last_updated: "2026-04-03T09:53:59.975Z"
 last_activity: 2026-04-03 — Roadmap created, phases derived from requirements
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 50
 ---
 
@@ -52,6 +52,7 @@ Progress: [█████░░░░░] 50%
 *Updated after each plan completion*
 | Phase 01-foundation-and-data-layer P01 | 45 | 3 tasks | 13 files |
 | Phase 01-foundation-and-data-layer P02 | 8 | 3 tasks | 8 files |
+| Phase 02-portal-integration-and-submission P01 | 84 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation-and-data-layer]: recordRuleUsage writes to browser.storage.local (not sync) — stats change on every match, don't need cross-device sync
 - [Phase 01-foundation-and-data-layer]: saveRules byte-count guard: warn at 25 rules, throw at 35 rules approaching 8192 per-item limit
 - [Phase 01-foundation-and-data-layer]: calculateVatFromPercentage uses inclusive reverse formula net=gross/(1+pct/100) matching CK portal validation rule
+- [Phase 02-portal-integration-and-submission]: _claimId parameter accepted but unused in readSuspenseItems — API surface consistency with submitExpense (plan 02)
+- [Phase 02-portal-integration-and-submission]: MutationObserver timeout set to 5000ms for DataTable readiness — synchronous DOM manipulation, 5s is conservative
+- [Phase 02-portal-integration-and-submission]: try/finally cleanup is the correctness invariant for DataTable iteration — MappedSuspenseItemIds always cleared even on throw
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T09:31:38.886Z
-Stopped at: Completed 01-foundation-and-data-layer/01-02-PLAN.md
+Last session: 2026-04-03T09:53:59.968Z
+Stopped at: Completed 02-portal-integration-and-submission/02-01-PLAN.md
 Resume file: None
