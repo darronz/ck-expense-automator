@@ -9,6 +9,7 @@ import type { SuspenseItem, ExpenseRule, SubmissionResult } from '../lib/types';
 vi.mock('../lib/rules-store', () => ({
   getRules: vi.fn().mockResolvedValue([]),
   recordRuleUsage: vi.fn().mockResolvedValue(undefined),
+  addRule: vi.fn().mockResolvedValue(undefined),
 }));
 
 // ─── Mock submitExpense from ck-api.ts ────────────────────────────────────────
@@ -24,6 +25,13 @@ vi.mock('../lib/expense-engine', () => ({
     const net = gross / (1 + pct / 100);
     return parseFloat((gross - net).toFixed(2));
   }),
+  validateVat: vi.fn((gross: number, vat: number) => {
+    if (vat <= 0) return { valid: false, error: 'VAT must be greater than 0' };
+    const net = gross - vat;
+    const maxVat = net * 0.20;
+    if (vat > maxVat) return { valid: false, error: `VAT too high` };
+    return { valid: true };
+  }),
 }));
 
 // ─── Import the module under test AFTER mocks ────────────────────────────────
@@ -33,7 +41,12 @@ import {
   formatAmount,
   parseClaimContext,
   submitAllWithDelay,
+  buildRuleFromForm,
+  getTopCategories,
+  submitUnmatched,
 } from '../ui/panel';
+import { addRule } from '../lib/rules-store';
+import { submitExpense } from '../lib/ck-api';
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 
@@ -345,5 +358,207 @@ describe('submitAllWithDelay', () => {
 
     expect(submitFn).not.toHaveBeenCalled();
     expect(onProgress).not.toHaveBeenCalled();
+  });
+});
+
+// ─── buildRuleFromForm ────────────────────────────────────────────────────────
+
+describe('buildRuleFromForm', () => {
+  it('creates a rule with correct fields for no-VAT case', () => {
+    const rule = buildRuleFromForm('Supabase', '68', 'Cloud DB', false, null, 'supabase');
+    expect(rule.name).toBe('Supabase');
+    expect(rule.matchPattern).toBe('supabase');
+    expect(rule.matchFlags).toBe('i');
+    expect(rule.nominalId).toBe('68');
+    expect(rule.description).toBe('Cloud DB');
+    expect(rule.purchasedFrom).toBe('Supabase');
+    expect(rule.hasVat).toBe(false);
+    expect(rule.vatAmount).toBeNull();
+    expect(rule.vatPercentage).toBeNull();
+    expect(rule.enabled).toBe(true);
+    expect(typeof rule.id).toBe('string');
+    expect(rule.id.length).toBeGreaterThan(0);
+    expect(typeof rule.createdAt).toBe('string');
+  });
+
+  it('creates a rule with correct fields for VAT case', () => {
+    const rule = buildRuleFromForm('Virgin Media', '48', 'Internet', true, 12, 'virgin media');
+    expect(rule.hasVat).toBe(true);
+    expect(rule.vatAmount).toBe(12);
+    expect(rule.nominalId).toBe('48');
+    expect(rule.matchPattern).toBe('virgin media');
+  });
+
+  it('sets vatAmount to null when hasVat=false regardless of passed vatAmount', () => {
+    const rule = buildRuleFromForm('Test', '68', 'Desc', false, 5, 'test');
+    expect(rule.vatAmount).toBeNull();
+  });
+
+  it('generates a unique id each call', () => {
+    const r1 = buildRuleFromForm('A', '68', 'D', false, null, 'a');
+    const r2 = buildRuleFromForm('B', '68', 'D', false, null, 'b');
+    expect(r1.id).not.toBe(r2.id);
+  });
+});
+
+// ─── getTopCategories ─────────────────────────────────────────────────────────
+
+describe('getTopCategories', () => {
+  it('returns all 20 category ids when rules=[]', () => {
+    const result = getTopCategories([]);
+    expect(result).toHaveLength(20);
+    // Should include all CATEGORIES ids
+    expect(result).toContain('68');
+    expect(result).toContain('48');
+    expect(result).toContain('114');
+  });
+
+  it('starts with DEFAULT_TOP_CATEGORIES when no usage data', () => {
+    const result = getTopCategories([]);
+    // DEFAULT_TOP_CATEGORIES = ['68', '48', '52', '62', '114']
+    expect(result[0]).toBe('68');
+    expect(result[1]).toBe('48');
+    expect(result[2]).toBe('52');
+  });
+
+  it('places most-used categories first when rules have matchCount', () => {
+    const rules = [
+      makeRule({ nominalId: '52', matchCount: 5 }),
+      makeRule({ nominalId: '48', matchCount: 3 }),
+    ];
+    const result = getTopCategories(rules);
+    const idx52 = result.indexOf('52');
+    const idx48 = result.indexOf('48');
+    const idx68 = result.indexOf('68');
+    expect(idx52).toBeLessThan(idx48);
+    expect(idx52).toBeLessThan(idx68);
+  });
+
+  it('treats matchCount=undefined as 0 (same as no usage)', () => {
+    const rules = [makeRule({ nominalId: '48', matchCount: undefined })];
+    const result = getTopCategories(rules);
+    // '68' is #1 in DEFAULT_TOP_CATEGORIES and '48' has no usage → '68' still first
+    expect(result[0]).toBe('68');
+  });
+
+  it('returns no duplicate ids', () => {
+    const rules = [makeRule({ nominalId: '68', matchCount: 5 })];
+    const result = getTopCategories(rules);
+    const unique = new Set(result);
+    expect(unique.size).toBe(result.length);
+  });
+});
+
+// ─── submitUnmatched ──────────────────────────────────────────────────────────
+
+describe('submitUnmatched', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const makeFormEl = (overrides: {
+    nominalId?: string;
+    reason?: string;
+    vendor?: string;
+    hasVat?: boolean;
+    vatAmount?: string;
+    saveAsRule?: boolean;
+    matchPattern?: string;
+  } = {}): HTMLElement => {
+    const form = document.createElement('div');
+    form.innerHTML = `
+      <select name="nominalId"><option value="${overrides.nominalId ?? '68'}" selected>${overrides.nominalId ?? '68'}</option></select>
+      <input name="reason" value="${overrides.reason ?? 'Test reason'}" />
+      <input name="vendor" value="${overrides.vendor ?? 'TestVendor'}" />
+      <input type="checkbox" name="hasVat" ${overrides.hasVat ? 'checked' : ''} />
+      <input name="vatAmount" value="${overrides.vatAmount ?? ''}" />
+      <input type="checkbox" name="saveAsRule" ${overrides.saveAsRule !== false ? 'checked' : ''} />
+      <input name="matchPattern" value="${overrides.matchPattern ?? 'testvendor'}" />
+      <div class="ck-form-error"></div>
+    `;
+    return form;
+  };
+
+  it('calls submitExpense when dryRun=false', async () => {
+    const item = makeItem({ id: 'unmatched-1', amount: 20 });
+    const form = makeFormEl({ reason: 'SMS API', vendor: 'Twilio', saveAsRule: false });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(submitExpense).toHaveBeenCalled();
+  });
+
+  it('skips submitExpense in dry-run mode', async () => {
+    const item = makeItem({ id: 'unmatched-2' });
+    const form = makeFormEl({ saveAsRule: false });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', true, form, [], onSuccess);
+
+    expect(submitExpense).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it('calls addRule when saveAsRule=true and submit succeeds', async () => {
+    const item = makeItem({ id: 'unmatched-3' });
+    const form = makeFormEl({ saveAsRule: true, matchPattern: 'twilio' });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(addRule).toHaveBeenCalled();
+  });
+
+  it('does NOT call addRule when saveAsRule=false', async () => {
+    const item = makeItem({ id: 'unmatched-4' });
+    const form = makeFormEl({ saveAsRule: false });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(addRule).not.toHaveBeenCalled();
+  });
+
+  it('shows error and does NOT call submitExpense when reason is empty', async () => {
+    const item = makeItem({ id: 'unmatched-5' });
+    const form = makeFormEl({ reason: '', saveAsRule: false });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(submitExpense).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    const errorDiv = form.querySelector('.ck-form-error') as HTMLElement;
+    expect(errorDiv.textContent).not.toBe('');
+  });
+
+  it('shows error and does NOT call submitExpense when VAT validation fails', async () => {
+    // VAT = 50 on gross = 20 would be invalid (> 20% of net)
+    const item = makeItem({ id: 'unmatched-6', amount: 20 });
+    const form = makeFormEl({
+      hasVat: true,
+      vatAmount: '50',
+      reason: 'Test',
+      saveAsRule: false,
+    });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(submitExpense).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    const errorDiv = form.querySelector('.ck-form-error') as HTMLElement;
+    expect(errorDiv.textContent).not.toBe('');
+  });
+
+  it('calls onSuccess after successful submission', async () => {
+    const item = makeItem({ id: 'unmatched-7' });
+    const form = makeFormEl({ saveAsRule: false });
+    const onSuccess = vi.fn();
+
+    await submitUnmatched(item, '275672', false, form, [], onSuccess);
+
+    expect(onSuccess).toHaveBeenCalled();
   });
 });

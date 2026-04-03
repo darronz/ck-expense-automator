@@ -3,10 +3,19 @@
 // Injected into the Shadow DOM root by entrypoints/ck-panel.content.ts.
 
 import type { SuspenseItem, ExpenseRule, MatchResult, ExpenseSubmission, SubmissionResult } from '../lib/types';
-import { matchExpenses, buildPayload, calculateVatFromPercentage } from '../lib/expense-engine';
+import { matchExpenses, buildPayload, calculateVatFromPercentage, validateVat } from '../lib/expense-engine';
 import { submitExpense } from '../lib/ck-api';
-import { getRules, recordRuleUsage } from '../lib/rules-store';
-import { getCategoryLabel, extractForeignCurrency } from './panel-utils';
+import { getRules, recordRuleUsage, addRule } from '../lib/rules-store';
+import {
+  getCategoryLabel,
+  extractForeignCurrency,
+  deriveMatchPattern,
+  isLikelyVatInclusive,
+  sortCategoriesByUsage,
+  CATEGORIES,
+  DEFAULT_TOP_CATEGORIES,
+} from './panel-utils';
+import { extractVendor } from '../lib/vendor-extractor';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -155,6 +164,163 @@ export async function submitAllWithDelay(
   }
 }
 
+// ─── Unmatched item helpers (exported for unit testing) ──────────────────────
+
+/**
+ * Build an ExpenseRule from inline form values.
+ * Called when the user submits an unmatched item with "Save as rule" checked.
+ */
+export function buildRuleFromForm(
+  vendor: string,
+  nominalId: string,
+  description: string,
+  hasVat: boolean,
+  vatAmount: number | null,
+  matchPattern: string,
+): ExpenseRule {
+  const id =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
+
+  return {
+    id,
+    name: vendor,
+    matchPattern,
+    matchFlags: 'i',
+    nominalId,
+    description,
+    purchasedFrom: vendor,
+    hasVat,
+    vatAmount: hasVat ? vatAmount : null,
+    vatPercentage: null,
+    enabled: true,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Return all 20 category NominalIds sorted by usage frequency (desc).
+ * Rules with higher matchCount for a given category float to the top.
+ * Falls back to DEFAULT_TOP_CATEGORIES ordering when no usage data exists.
+ *
+ * Note: ExpenseRule.matchCount is a usage stat stored on the rule itself
+ * (mirrored from storage.local for display purposes).
+ */
+export function getTopCategories(rules: ExpenseRule[]): string[] {
+  // Sum matchCount per nominalId across all rules
+  const usageCounts: Record<string, number> = {};
+  for (const rule of rules) {
+    const count = rule.matchCount ?? 0;
+    if (count > 0) {
+      usageCounts[rule.nominalId] = (usageCounts[rule.nominalId] ?? 0) + count;
+    }
+  }
+  return sortCategoriesByUsage(CATEGORIES.map((c) => c.id), usageCounts);
+}
+
+/**
+ * Submit an unmatched item using values from the inline form element.
+ *
+ * Flow:
+ * 1. Read form values (nominalId, reason, vendor, hasVat, vatAmount, saveAsRule, matchPattern)
+ * 2. Validate: reason required; if hasVat, validate VAT via validateVat()
+ * 3. In dryRun: skip submitExpense, call onSuccess
+ * 4. Otherwise: call submitExpense; on success optionally call addRule(); call onSuccess
+ * 5. On any validation or submission error: show in .ck-form-error div
+ */
+export async function submitUnmatched(
+  item: SuspenseItem,
+  claimId: string,
+  dryRun: boolean,
+  formEl: HTMLElement,
+  rules: ExpenseRule[],
+  onSuccess: () => void,
+): Promise<void> {
+  // Read form values
+  const nominalIdEl = formEl.querySelector('[name="nominalId"]') as HTMLSelectElement | null;
+  const reasonEl = formEl.querySelector('[name="reason"]') as HTMLInputElement | null;
+  const vendorEl = formEl.querySelector('[name="vendor"]') as HTMLInputElement | null;
+  const hasVatEl = formEl.querySelector('[name="hasVat"]') as HTMLInputElement | null;
+  const vatAmountEl = formEl.querySelector('[name="vatAmount"]') as HTMLInputElement | null;
+  const saveAsRuleEl = formEl.querySelector('[name="saveAsRule"]') as HTMLInputElement | null;
+  const matchPatternEl = formEl.querySelector('[name="matchPattern"]') as HTMLInputElement | null;
+  const errorDiv = formEl.querySelector('.ck-form-error') as HTMLElement | null;
+
+  const nominalId = nominalIdEl?.value ?? '68';
+  const reason = (reasonEl?.value ?? '').trim();
+  const vendor = (vendorEl?.value ?? '').trim();
+  const hasVat = hasVatEl?.checked ?? false;
+  const vatAmountRaw = (vatAmountEl?.value ?? '').trim();
+  const vatAmount = vatAmountRaw ? parseFloat(vatAmountRaw) : null;
+  const saveAsRule = saveAsRuleEl?.checked ?? false;
+  const matchPattern = (matchPatternEl?.value ?? '').trim();
+
+  const showError = (msg: string): void => {
+    if (errorDiv) errorDiv.textContent = msg;
+  };
+
+  // Validation: reason is required
+  if (!reason) {
+    showError('Reason is required.');
+    return;
+  }
+
+  // Validation: VAT amount when hasVat is checked
+  if (hasVat && vatAmount !== null) {
+    const vatCheck = validateVat(item.amount, vatAmount);
+    if (!vatCheck.valid) {
+      showError(vatCheck.error ?? 'Invalid VAT amount.');
+      return;
+    }
+  }
+
+  // Clear any previous error
+  showError('');
+
+  // Build a synthetic rule for submission
+  const syntheticRule: ExpenseRule = buildRuleFromForm(
+    vendor || item.description,
+    nominalId,
+    reason,
+    hasVat,
+    vatAmount,
+    matchPattern || deriveMatchPattern(vendor),
+  );
+
+  if (dryRun) {
+    // In dry-run: skip actual submission
+    if (saveAsRule && matchPattern) {
+      // Optionally skip addRule in dry-run as well — consistent with matched items dry-run
+      // We do NOT call addRule in dry-run
+    }
+    onSuccess();
+    return;
+  }
+
+  const submission: ExpenseSubmission = buildSubmissionForItem(item, syntheticRule, claimId);
+  const result = await submitExpense(submission);
+
+  if (result.success) {
+    if (saveAsRule) {
+      await addRule(
+        buildRuleFromForm(
+          vendor || item.description,
+          nominalId,
+          reason,
+          hasVat,
+          vatAmount,
+          matchPattern || deriveMatchPattern(vendor),
+        ),
+      );
+    }
+    onSuccess();
+  } else {
+    const errorMsg = result.validationMessages?.join('; ') ?? result.error ?? 'Submission failed.';
+    showError(errorMsg);
+  }
+}
+
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -228,6 +394,212 @@ function applyErrorState(
     rowEl.appendChild(errorEl);
   }
   errorEl.textContent = errorMsg;
+}
+
+// ─── Unmatched item DOM renderers ────────────────────────────────────────────
+
+/**
+ * Build the inline assignment form for an unmatched suspense item.
+ * The form is hidden by default and shown when the row has .ck-form-open class.
+ */
+function renderInlineForm(
+  item: SuspenseItem,
+  claimId: string,
+  dryRun: boolean,
+  rules: ExpenseRule[],
+  rowEl: HTMLElement,
+): HTMLElement {
+  const formEl = el('div', { class: 'ck-inline-form' });
+
+  const topCategories = getTopCategories(rules);
+  const vendorFromDesc = extractVendor(item.description);
+  const vendor = vendorFromDesc ?? '';
+
+  // VAT divisibility hint text (computed once)
+  const vatHintText = isLikelyVatInclusive(item.amount)
+    ? `This amount may include 20% VAT (£${(item.amount - item.amount / 1.2).toFixed(2)})`
+    : '';
+
+  // ── Category row ─────────────────────────────────────────────────────────
+  const categoryRow = el('div', { class: 'ck-form-row' });
+  const categoryLabel = el('label', {}, 'Category');
+  const categorySelect = el('select', { name: 'nominalId' } as any);
+  for (const catId of topCategories) {
+    const option = el('option', { value: catId } as any, getCategoryLabel(catId));
+    if (catId === '68') (option as HTMLOptionElement).selected = true;
+    categorySelect.appendChild(option);
+  }
+  categoryRow.appendChild(categoryLabel);
+  categoryRow.appendChild(categorySelect);
+  formEl.appendChild(categoryRow);
+
+  // ── Reason row ───────────────────────────────────────────────────────────
+  const reasonRow = el('div', { class: 'ck-form-row' });
+  const reasonLabel = el('label', {}, 'Reason');
+  const reasonInput = el('input', { type: 'text', name: 'reason', placeholder: 'e.g. Cloud DB' } as any);
+  reasonRow.appendChild(reasonLabel);
+  reasonRow.appendChild(reasonInput);
+  formEl.appendChild(reasonRow);
+
+  // ── Vendor row ───────────────────────────────────────────────────────────
+  const vendorRow = el('div', { class: 'ck-form-row' });
+  const vendorLabel = el('label', {}, 'Vendor');
+  const vendorInput = el('input', { type: 'text', name: 'vendor', value: vendor } as any);
+  vendorRow.appendChild(vendorLabel);
+  vendorRow.appendChild(vendorInput);
+  formEl.appendChild(vendorRow);
+
+  // ── Has VAT row ──────────────────────────────────────────────────────────
+  const vatCheckRow = el('div', { class: 'ck-form-checkbox-row' });
+  const vatCheckbox = el('input', { type: 'checkbox', name: 'hasVat' } as any);
+  const vatCheckLabel = el('label', {}, 'Has VAT receipt');
+  vatCheckRow.appendChild(vatCheckbox);
+  vatCheckRow.appendChild(vatCheckLabel);
+  formEl.appendChild(vatCheckRow);
+
+  // ── VAT amount row ───────────────────────────────────────────────────────
+  const vatAmountRow = el('div', { class: 'ck-form-row' });
+  const vatAmountLabel = el('label', {}, 'VAT Amount (£)');
+  const vatAmountInput = el('input', {
+    type: 'number',
+    name: 'vatAmount',
+    placeholder: '0.00',
+    disabled: true,
+    step: '0.01',
+    min: '0',
+  } as any);
+  const vatHintDiv = el('div', { class: `ck-vat-hint${vatHintText ? ' ck-visible' : ''}` }, vatHintText);
+  vatAmountRow.appendChild(vatAmountLabel);
+  vatAmountRow.appendChild(vatAmountInput);
+  vatAmountRow.appendChild(vatHintDiv);
+  formEl.appendChild(vatAmountRow);
+
+  // Toggle VAT amount field when checkbox changes
+  vatCheckbox.addEventListener('change', () => {
+    (vatAmountInput as HTMLInputElement).disabled = !(vatCheckbox as HTMLInputElement).checked;
+  });
+
+  // ── Save as rule section ─────────────────────────────────────────────────
+  const saveRuleSection = el('div', { class: 'ck-save-rule-section' });
+
+  const saveRuleRow = el('div', { class: 'ck-form-checkbox-row' });
+  const saveRuleCheckbox = el('input', {
+    type: 'checkbox',
+    name: 'saveAsRule',
+    id: `ck-save-rule-${item.id}`,
+    checked: true,
+  } as any);
+  const saveRuleLabel = el('label', { htmlFor: `ck-save-rule-${item.id}` }, 'Save as rule for future matches');
+  saveRuleRow.appendChild(saveRuleCheckbox);
+  saveRuleRow.appendChild(saveRuleLabel);
+  saveRuleSection.appendChild(saveRuleRow);
+
+  // Match pattern input (only visible when saveAsRule checked)
+  const patternRow = el('div', { class: 'ck-match-pattern-row ck-visible' });
+  const patternLabel = el('label', {}, 'Match pattern (regex)');
+  const fallbackDesc = item.description.split('\n').pop()?.trim() ?? item.description;
+  const defaultPattern = deriveMatchPattern(vendorFromDesc ?? fallbackDesc);
+  const patternInput = el('input', {
+    type: 'text',
+    name: 'matchPattern',
+    value: defaultPattern,
+  } as any);
+  patternRow.appendChild(patternLabel);
+  patternRow.appendChild(patternInput);
+  saveRuleSection.appendChild(patternRow);
+
+  // Toggle match pattern visibility when saveAsRule changes
+  saveRuleCheckbox.addEventListener('change', () => {
+    const checked = (saveRuleCheckbox as HTMLInputElement).checked;
+    if (checked) {
+      patternRow.classList.add('ck-visible');
+    } else {
+      patternRow.classList.remove('ck-visible');
+    }
+  });
+
+  formEl.appendChild(saveRuleSection);
+
+  // ── Error div ────────────────────────────────────────────────────────────
+  const errorDiv = el('div', { class: 'ck-form-error' });
+  formEl.appendChild(errorDiv);
+
+  // ── Actions row ──────────────────────────────────────────────────────────
+  const actionsRow = el('div', { class: 'ck-form-actions' });
+
+  const cancelBtn = el('button', { class: 'ck-form-cancel-btn', type: 'button' } as any, 'Cancel');
+  cancelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    rowEl.classList.remove('ck-form-open');
+    errorDiv.textContent = '';
+  });
+
+  const submitBtn = el('button', { class: 'ck-form-submit-btn', type: 'button' } as any, 'Submit');
+  submitBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    (submitBtn as HTMLButtonElement).disabled = true;
+    (submitBtn as HTMLButtonElement).textContent = '...';
+
+    await submitUnmatched(item, claimId, dryRun, formEl, rules, () => {
+      // Success: collapse form, apply success state to row
+      rowEl.classList.remove('ck-form-open');
+      applySuccessState(rowEl);
+    });
+
+    // Re-enable if still in the form (error case)
+    if (!rowEl.classList.contains('ck-success')) {
+      (submitBtn as HTMLButtonElement).disabled = false;
+      (submitBtn as HTMLButtonElement).textContent = 'Submit';
+    }
+  });
+
+  actionsRow.appendChild(cancelBtn);
+  actionsRow.appendChild(submitBtn);
+  formEl.appendChild(actionsRow);
+
+  return formEl;
+}
+
+/**
+ * Build a single unmatched item row with [Assign & Submit] button and inline form.
+ */
+function renderUnmatchedRow(
+  item: SuspenseItem,
+  claimId: string,
+  dryRun: boolean,
+  rules: ExpenseRule[],
+): HTMLElement {
+  const rowEl = el('div', { class: 'ck-item-row', id: `ck-row-${item.id}` });
+
+  // Primary row with date, amount, description, and assign button
+  const primaryRow = el('div', { class: 'ck-item-primary ck-unmatched-row' });
+
+  const left = el('div', { class: 'ck-item-left' });
+  left.appendChild(el('span', { class: 'ck-item-date' }, item.date.slice(0, 5)));
+  left.appendChild(document.createTextNode(' '));
+  left.appendChild(el('span', { class: 'ck-item-amount' }, formatAmount(item.amount)));
+  left.appendChild(document.createTextNode(' '));
+
+  // Extract description after the Starling account prefix
+  const descLines = item.description.split('\n').filter(Boolean);
+  const shortDesc = (descLines[descLines.length - 1]?.trim() ?? item.description).slice(0, 40);
+  left.appendChild(el('span', { class: 'ck-item-name' }, shortDesc));
+
+  const assignBtn = el('button', { class: 'ck-assign-btn' }, 'Assign & Submit');
+  assignBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    rowEl.classList.toggle('ck-form-open');
+  });
+
+  primaryRow.appendChild(left);
+  primaryRow.appendChild(assignBtn);
+  rowEl.appendChild(primaryRow);
+
+  // Build inline form (hidden until ck-form-open applied)
+  const inlineForm = renderInlineForm(item, claimId, dryRun, rules, rowEl);
+  rowEl.appendChild(inlineForm);
+
+  return rowEl;
 }
 
 // ─── Individual item submit ───────────────────────────────────────────────────
@@ -623,7 +995,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
       bodyEl.appendChild(matchedSection);
 
-      // ── Unmatched section (placeholder for Plan 03) ───────────────────────
+      // ── Unmatched section ─────────────────────────────────────────────────
 
       const unmatchedSection = el('div', { class: 'ck-unmatched-section' });
       const unmatchedHeader = el('div', { class: 'ck-section-header' });
@@ -631,22 +1003,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
       unmatchedSection.appendChild(unmatchedHeader);
 
       for (const item of unmatched) {
-        const rowEl = el('div', { class: 'ck-item-row', id: `ck-row-${item.id}` });
-        const primary = el('div', { class: 'ck-item-primary' });
-        const left = el('div', { class: 'ck-item-left' });
-        left.appendChild(el('span', { class: 'ck-item-date' }, item.date.slice(0, 5)));
-        left.appendChild(document.createTextNode(' '));
-        left.appendChild(el('span', { class: 'ck-item-amount' }, formatAmount(item.amount)));
-        left.appendChild(document.createTextNode(' '));
-        // Extract description after the Starling account prefix
-        const descLines = item.description.split('\n').filter(Boolean);
-        const shortDesc = descLines[descLines.length - 1]?.trim() ?? item.description;
-        left.appendChild(el('span', { class: 'ck-item-name' }, shortDesc));
-        const assignBtn = el('button', { class: 'ck-submit-btn' }, 'Assign & Submit');
-        assignBtn.title = 'Plan 03 will add the inline assignment form';
-        primary.appendChild(left);
-        primary.appendChild(assignBtn);
-        rowEl.appendChild(primary);
+        const rowEl = renderUnmatchedRow(item, cId, state.dryRun, rules);
         unmatchedSection.appendChild(rowEl);
       }
 
