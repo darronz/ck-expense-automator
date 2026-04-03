@@ -7,7 +7,7 @@
 
 ### Portal Integration
 
-- [ ] **PORT-01**: Content script injects via MAIN world and can access the page's jQuery and DataTables instances
+- [x] **PORT-01**: Content script injects via MAIN world and can access the page's jQuery and DataTables instances
 - [ ] **PORT-02**: Extension programmatically sets Payment Type to "Business account" and ticks "Map to Suspense Items" to reveal the DataTable
 - [ ] **PORT-03**: Extension reads all suspense items from the DataTable (ID, date, description, amount) with try/finally cleanup
 - [ ] **PORT-04**: Extension submits expenses via fetch() POST with correct ASP.NET form encoding (including checkbox double-field pattern)
@@ -81,7 +81,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PORT-01 | Phase 1 | Pending |
+| PORT-01 | Phase 1 | Complete |
 | RULE-01 | Phase 1 | Pending |
 | RULE-02 | Phase 1 | Pending |
 | RULE-03 | Phase 1 | Pending |
