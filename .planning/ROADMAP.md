@@ -60,12 +60,12 @@ Plans:
   3. User can submit all matched items in bulk via [Submit All] and see a progress indicator update as each item completes
   4. Unmatched items expand to an inline form with category dropdown, reason, vendor, VAT fields, and a "Save as rule" checkbox (default checked) that creates a rule with an editable match pattern on submit
   5. Dry-run mode toggle shows what would be submitted without actually posting to the CK endpoint
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Shadow DOM panel host, panel HTML/CSS structure, matched items section with per-row [Submit] and [Submit All], success/error/retry states, progress indicator
-- [ ] 03-02: Unmatched items section with inline assignment form, smart vendor pre-fill, category dropdown with most-used sorting, VAT divisibility hint, "Save as rule" flow with editable pattern
-- [ ] 03-03: Dry-run mode toggle, foreign currency display, claim context header, panel header with item counts, [Reload Page] button after all submissions
+- [ ] 03-01-PLAN.md — Isolated-world panel entrypoint (ck-panel.content.ts), event bridge extending ck-portal.content.ts to fire ck:items-ready, panel-utils.ts pure utilities (foreign currency, VAT hint, category sorting, match pattern derivation), panel.css scaffold
+- [ ] 03-02-PLAN.md — panel.ts matched items section: header with claim context and counts, matched item rows with expand/edit, individual and bulk submit with 400ms delay, progress indicator, success/error/retry states, dry-run toggle
+- [ ] 03-03-PLAN.md — panel.ts unmatched items section: inline assignment form, category dropdown with most-used sorting, vendor pre-fill, VAT divisibility hint, save-as-rule with editable match pattern, client-side VAT validation
 
 ### Phase 4: Extension Pages and Polish
 **Goal**: User can manage all rules from a dedicated options page, and the extension popup provides quick status when visiting the CK portal
