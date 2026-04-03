@@ -12,7 +12,7 @@ Build a Chrome extension (Manifest V3) that reads unmapped bank transactions fro
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Data Layer** - WXT scaffold, MAIN world injection, rule storage, and core matching engine
+- [x] **Phase 1: Foundation and Data Layer** - WXT scaffold, MAIN world injection, rule storage, and core matching engine (completed 2026-04-03)
 - [ ] **Phase 2: Portal Integration and Submission** - Suspense item reading from DataTable and expense submission via fetch() POST
 - [ ] **Phase 3: Injected Panel UI** - Shadow DOM panel with matched/unmatched display, submit flows, and inline assignment form
 - [ ] **Phase 4: Extension Pages and Polish** - Popup, options page with full rule management, dry-run mode, and trust features
@@ -87,7 +87,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Data Layer | 1/2 | In Progress|  |
+| 1. Foundation and Data Layer | 2/2 | Complete   | 2026-04-03 |
 | 2. Portal Integration and Submission | 0/2 | Not started | - |
 | 3. Injected Panel UI | 0/3 | Not started | - |
 | 4. Extension Pages and Polish | 0/1 | Not started | - |

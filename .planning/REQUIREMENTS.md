@@ -16,14 +16,14 @@
 
 ### Rule Engine
 
-- [ ] **RULE-01**: User can define expense rules with regex pattern, category (NominalId), vendor, description, and VAT settings
-- [ ] **RULE-02**: Rules are stored in chrome.storage.sync and persist across sessions and devices
-- [ ] **RULE-03**: Default example rules are pre-loaded on extension install
-- [ ] **RULE-04**: Expense engine matches bank descriptions against enabled rules using regex (case-insensitive by default)
-- [ ] **RULE-05**: VAT is validated client-side before submission (VAT > 0 and ≤ 20% of net amount)
-- [ ] **RULE-06**: Expense engine constructs complete form payload with all required fields (Id, ExpenseClaimId, dates, NominalId, etc.)
-- [ ] **RULE-07**: Smart vendor extraction parses bank descriptions to identify vendor name from ONLINE PAYMENT, DIRECT DEBIT, CARD SUBSCRIPTION, and APPLE PAY patterns
-- [ ] **RULE-08**: Rule usage statistics (matchCount, lastUsed) are tracked in chrome.storage.local
+- [x] **RULE-01**: User can define expense rules with regex pattern, category (NominalId), vendor, description, and VAT settings
+- [x] **RULE-02**: Rules are stored in chrome.storage.sync and persist across sessions and devices
+- [x] **RULE-03**: Default example rules are pre-loaded on extension install
+- [x] **RULE-04**: Expense engine matches bank descriptions against enabled rules using regex (case-insensitive by default)
+- [x] **RULE-05**: VAT is validated client-side before submission (VAT > 0 and ≤ 20% of net amount)
+- [x] **RULE-06**: Expense engine constructs complete form payload with all required fields (Id, ExpenseClaimId, dates, NominalId, etc.)
+- [x] **RULE-07**: Smart vendor extraction parses bank descriptions to identify vendor name from ONLINE PAYMENT, DIRECT DEBIT, CARD SUBSCRIPTION, and APPLE PAY patterns
+- [x] **RULE-08**: Rule usage statistics (matchCount, lastUsed) are tracked in chrome.storage.local
 
 ### Injected Panel
 
@@ -82,14 +82,14 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PORT-01 | Phase 1 | Complete |
-| RULE-01 | Phase 1 | Pending |
-| RULE-02 | Phase 1 | Pending |
-| RULE-03 | Phase 1 | Pending |
-| RULE-04 | Phase 1 | Pending |
-| RULE-05 | Phase 1 | Pending |
-| RULE-06 | Phase 1 | Pending |
-| RULE-07 | Phase 1 | Pending |
-| RULE-08 | Phase 1 | Pending |
+| RULE-01 | Phase 1 | Complete |
+| RULE-02 | Phase 1 | Complete |
+| RULE-03 | Phase 1 | Complete |
+| RULE-04 | Phase 1 | Complete |
+| RULE-05 | Phase 1 | Complete |
+| RULE-06 | Phase 1 | Complete |
+| RULE-07 | Phase 1 | Complete |
+| RULE-08 | Phase 1 | Complete |
 | PORT-02 | Phase 2 | Pending |
 | PORT-03 | Phase 2 | Pending |
 | PORT-04 | Phase 2 | Pending |
