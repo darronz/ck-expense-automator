@@ -1,0 +1,345 @@
+/* entrypoints/options/options.css */
+/* Styles for the Options / Rule Manager page */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  color: #111827;
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #111827;
+}
+
+/* ─── Toolbar ──────────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toolbar-left {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* ─── Table ────────────────────────────────────────────────────────────────── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 2px solid #e5e7eb;
+  color: #6b7280;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+tr:hover td {
+  background: #f9fafb;
+}
+
+tr.editing td {
+  background: #eff6ff;
+}
+
+/* ─── Inputs / Selects ─────────────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="number"],
+select {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  width: 100%;
+  font-family: inherit;
+  color: #111827;
+  background: white;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+input.invalid {
+  border-color: #dc2626;
+}
+
+.toggle {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Buttons ──────────────────────────────────────────────────────────────── */
+
+.btn {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid;
+  font-family: inherit;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.btn-edit {
+  color: #2563eb;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.btn-edit:hover {
+  background: #dbeafe;
+}
+
+.btn-save {
+  color: #16a34a;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.btn-save:hover {
+  background: #dcfce7;
+}
+
+.btn-cancel {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: white;
+}
+
+.btn-cancel:hover {
+  background: #f3f4f6;
+}
+
+.btn-delete {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}
+
+.btn-reset {
+  color: #dc2626;
+  border-color: #dc2626;
+  background: white;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.btn-reset:hover {
+  background: #fef2f2;
+}
+
+.btn-add-rule {
+  color: white;
+  background: #2563eb;
+  border-color: #2563eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.btn-add-rule:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* ─── Misc ─────────────────────────────────────────────────────────────────── */
+
+.muted {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.enabled-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.disabled-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+code {
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #374151;
+}
+
+/* ─── Add Rule Form ─────────────────────────────────────────────────────────── */
+
+.add-form {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #f9fafb;
+  display: none;
+}
+
+.add-form.visible {
+  display: block;
+}
+
+.add-form h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.add-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.add-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.add-form-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.add-form-field input,
+.add-form-field select {
+  width: 100%;
+}
+
+.add-form-vat {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.add-form-vat-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.add-form-vat-amount,
+.add-form-vat-pct {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.add-form-vat-amount label,
+.add-form-vat-pct label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.add-form-vat-amount input,
+.add-form-vat-pct input {
+  width: 100px;
+}
+
+.add-form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.vat-sub-fields {
+  display: none;
+}
+
+.vat-sub-fields.visible {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.actions-cell {
+  white-space: nowrap;
+  display: flex;
+  gap: 4px;
+}
+
+/* ─── Error / Notice ─────────────────────────────────────────────────────────── */
+
+.notice {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.notice-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
