@@ -75,10 +75,10 @@ Plans:
   1. Extension popup shows whether the current tab is a CK ExpenseItems page, and if so displays the matched/unmatched item counts with a link to the options page
   2. Options page provides a full rule list with add, edit, delete, enable/disable controls, and a "Reset to defaults" button that restores the example rules
   3. Rules edited or deleted in the options page are reflected in the content script panel without requiring a tab reload
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: Extension popup (page status, item counts, options link) and options page (rule CRUD, enable/disable, reset to defaults, rule usage statistics)
+- [ ] 04-01-PLAN.md — Extension popup (page status, item counts, panel toggle, options link) and options page (rule CRUD with inline edit, enable/disable, reset to defaults, rule usage statistics)
 
 ## Progress
 
