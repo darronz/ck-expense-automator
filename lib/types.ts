@@ -54,3 +54,16 @@ export interface MatchResult {
   matched: Array<{ item: SuspenseItem; rule: ExpenseRule }>;
   unmatched: SuspenseItem[];
 }
+
+export type CkApiError =
+  | 'SESSION_EXPIRED'
+  | 'VALIDATION_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT'
+  | 'DATATABLE_NOT_FOUND';
+
+export interface SubmissionResult {
+  success: boolean;
+  error?: CkApiError | string;
+  validationMessages?: string[];
+}
