@@ -408,6 +408,7 @@ function renderInlineForm(
   dryRun: boolean,
   rules: ExpenseRule[],
   rowEl: HTMLElement,
+  onAssign?: (item: SuspenseItem, rule: ExpenseRule) => void,
 ): HTMLElement {
   const formEl = el('div', { class: 'ck-inline-form' });
 
@@ -534,40 +535,74 @@ function renderInlineForm(
     errorDiv.textContent = '';
   });
 
-  const submitBtn = el('button', { class: 'ck-form-submit-btn', type: 'button' } as any, 'Submit');
-  submitBtn.addEventListener('click', async (e) => {
+  const assignSubmitBtn = el('button', { class: 'ck-form-submit-btn', type: 'button' } as any, 'Assign');
+  assignSubmitBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    (submitBtn as HTMLButtonElement).disabled = true;
-    (submitBtn as HTMLButtonElement).textContent = '...';
 
-    await submitUnmatched(item, claimId, dryRun, formEl, rules, () => {
-      // Success: collapse form, apply success state to row
-      rowEl.classList.remove('ck-form-open');
-      applySuccessState(rowEl);
-    });
+    // Read form values
+    const nominalId = (formEl.querySelector('[name="nominalId"]') as HTMLSelectElement)?.value ?? '68';
+    const reason = ((formEl.querySelector('[name="reason"]') as HTMLInputElement)?.value ?? '').trim();
+    const vendor = ((formEl.querySelector('[name="vendor"]') as HTMLInputElement)?.value ?? '').trim();
+    const hasVat = (formEl.querySelector('[name="hasVat"]') as HTMLInputElement)?.checked ?? false;
+    const vatAmountRaw = ((formEl.querySelector('[name="vatAmount"]') as HTMLInputElement)?.value ?? '').trim();
+    const vatAmount = vatAmountRaw ? parseFloat(vatAmountRaw) : null;
+    const saveAsRule = (formEl.querySelector('[name="saveAsRule"]') as HTMLInputElement)?.checked ?? false;
+    const matchPattern = ((formEl.querySelector('[name="matchPattern"]') as HTMLInputElement)?.value ?? '').trim();
 
-    // Re-enable if still in the form (error case)
-    if (!rowEl.classList.contains('ck-success')) {
-      (submitBtn as HTMLButtonElement).disabled = false;
-      (submitBtn as HTMLButtonElement).textContent = 'Submit';
+    // Validate
+    if (!reason) {
+      errorDiv.textContent = 'Reason is required.';
+      return;
     }
+    if (hasVat && vatAmount !== null) {
+      const vatCheck = validateVat(item.amount, vatAmount);
+      if (!vatCheck.valid) {
+        errorDiv.textContent = vatCheck.error ?? 'Invalid VAT amount.';
+        return;
+      }
+    }
+    errorDiv.textContent = '';
+
+    // Build the rule
+    const syntheticRule = buildRuleFromForm(
+      vendor || item.description,
+      nominalId,
+      reason,
+      hasVat,
+      vatAmount,
+      matchPattern || deriveMatchPattern(vendor),
+    );
+
+    // Save as rule if checked
+    if (saveAsRule) {
+      await addRule(syntheticRule);
+    }
+
+    // Move to matched section via callback
+    if (onAssign) {
+      onAssign(item, syntheticRule);
+    }
+
+    // Remove this unmatched row
+    rowEl.remove();
   });
 
   actionsRow.appendChild(cancelBtn);
-  actionsRow.appendChild(submitBtn);
+  actionsRow.appendChild(assignSubmitBtn);
   formEl.appendChild(actionsRow);
 
   return formEl;
 }
 
 /**
- * Build a single unmatched item row with [Assign & Submit] button and inline form.
+ * Build a single unmatched item row with [Assign] button and inline form.
  */
 function renderUnmatchedRow(
   item: SuspenseItem,
   claimId: string,
   dryRun: boolean,
   rules: ExpenseRule[],
+  onAssign?: (item: SuspenseItem, rule: ExpenseRule) => void,
 ): HTMLElement {
   const rowEl = el('div', { class: 'ck-item-row', id: `ck-row-${item.id}` });
 
@@ -585,7 +620,7 @@ function renderUnmatchedRow(
   const shortDesc = (descLines[descLines.length - 1]?.trim() ?? item.description).slice(0, 40);
   left.appendChild(el('span', { class: 'ck-item-name' }, shortDesc));
 
-  const assignBtn = el('button', { class: 'ck-assign-btn' }, 'Assign & Submit');
+  const assignBtn = el('button', { class: 'ck-assign-btn' }, 'Assign');
   assignBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     rowEl.classList.toggle('ck-form-open');
@@ -596,7 +631,7 @@ function renderUnmatchedRow(
   rowEl.appendChild(primaryRow);
 
   // Build inline form (hidden until ck-form-open applied)
-  const inlineForm = renderInlineForm(item, claimId, dryRun, rules, rowEl);
+  const inlineForm = renderInlineForm(item, claimId, dryRun, rules, rowEl, onAssign);
   rowEl.appendChild(inlineForm);
 
   return rowEl;
@@ -1092,11 +1127,32 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
       const unmatchedSection = el('div', { class: 'ck-unmatched-section' });
       const unmatchedHeader = el('div', { class: 'ck-section-header' });
-      unmatchedHeader.appendChild(el('span', {}, `UNMATCHED (${unmatched.length})`));
+      const unmatchedHeading = el('span', {}, `UNMATCHED (${unmatched.length})`);
+      unmatchedHeader.appendChild(unmatchedHeading);
       unmatchedSection.appendChild(unmatchedHeader);
 
+      // Callback when an unmatched item is assigned — move it to matched section
+      const handleAssign = (assignedItem: SuspenseItem, assignedRule: ExpenseRule) => {
+        // Add to matched state
+        state.items.matched.push({ item: assignedItem, rule: assignedRule });
+        state.items.unmatched = state.items.unmatched.filter(u => u.id !== assignedItem.id);
+
+        // Add a matched row to the matched section
+        const newRow = buildMatchedRow(assignedItem, assignedRule, cId, state, ctx);
+        matchedSection.appendChild(newRow);
+
+        // Update counts
+        const mc = state.items.matched.length;
+        const uc = state.items.unmatched.length;
+        matchedHeading.textContent = `MATCHED (${mc})`;
+        unmatchedHeading.textContent = `UNMATCHED (${uc})`;
+        contextText.textContent =
+          `Claim: ${ctx2.month} ${ctx2.year} · ${mc} matched / ${uc} unmatched`;
+        footerText.textContent = `Submitted: ${state.submittedCount}/${mc + uc} · Ready`;
+      };
+
       for (const item of unmatched) {
-        const rowEl = renderUnmatchedRow(item, cId, state.dryRun, rules);
+        const rowEl = renderUnmatchedRow(item, cId, state.dryRun, rules, handleAssign);
         unmatchedSection.appendChild(rowEl);
       }
 
