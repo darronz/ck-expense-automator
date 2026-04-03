@@ -84,18 +84,22 @@ export default defineContentScript({
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
+            zIndex: '2147483647',
           });
         }
 
         // container (<body>) is the centered panel — scrollable, clickable
         Object.assign(container.style, {
           pointerEvents: 'auto',
+          position: 'relative',
+          zIndex: '2147483647',
           maxWidth: 'calc(100vw - 80px)',
           maxHeight: 'calc(100vh - 80px)',
           width: '480px',
           overflowY: 'auto',
           borderRadius: '12px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          background: '#ffffff',
         });
 
         // Store shadowHost reference for panel toggle
