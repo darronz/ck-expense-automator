@@ -455,15 +455,15 @@ function renderInlineForm(
     type: 'checkbox',
     name: 'saveAsRule',
     id: `ck-save-rule-${item.id}`,
-    checked: true,
+    checked: false,
   } as any);
   const saveRuleLabel = el('label', { htmlFor: `ck-save-rule-${item.id}` }, 'Save as rule for future matches');
   saveRuleRow.appendChild(saveRuleCheckbox);
   saveRuleRow.appendChild(saveRuleLabel);
   saveRuleSection.appendChild(saveRuleRow);
 
-  // Match pattern input (only visible when saveAsRule checked)
-  const patternRow = el('div', { class: 'ck-match-pattern-row ck-visible' });
+  // Match pattern input (hidden by default, shown when saveAsRule checked)
+  const patternRow = el('div', { class: 'ck-match-pattern-row' });
   const patternLabel = el('label', {});
   patternLabel.appendChild(document.createTextNode('Match pattern ('));
   const regexLink = el('a', { href: 'https://regexone.com', target: '_blank' } as any, 'regex');
