@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-injected-panel-ui/03-02-PLAN.md
-last_updated: "2026-04-03T10:37:01.215Z"
+stopped_at: Completed 03-injected-panel-ui/03-03-PLAN.md
+last_updated: "2026-04-03T10:42:45.708Z"
 last_activity: 2026-04-03 — Roadmap created, phases derived from requirements
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 50
 ---
 
@@ -56,6 +56,7 @@ Progress: [█████░░░░░] 50%
 | Phase 02-portal-integration-and-submission P02 | 3 | 3 tasks | 3 files |
 | Phase 03-injected-panel-ui P01 | 3 | 2 tasks | 6 files |
 | Phase 03-injected-panel-ui P02 | 12 | 2 tasks | 3 files |
+| Phase 03-injected-panel-ui P03 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 03-injected-panel-ui]: window.__ckExpenseData set before ck:items-ready dispatch — handles non-deterministic document_idle ordering between MAIN and ISOLATED worlds
 - [Phase 03-injected-panel-ui]: submitAllWithDelay accepts injectable submitFn and delayFn parameters for deterministic unit testing without fake timers
 - [Phase 03-injected-panel-ui]: Row ID convention ck-row-{item.id} for direct DOM lookup in bulk submit callbacks
+- [Phase 03-injected-panel-ui]: submitUnmatched() skips addRule() in dry-run mode — no side effects in preview, consistent with matched-item dry-run behaviour
+- [Phase 03-injected-panel-ui]: .ck-form-open CSS class toggle controls inline form visibility — no JS display manipulation, consistent with .ck-expanded pattern
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:37:01.213Z
-Stopped at: Completed 03-injected-panel-ui/03-02-PLAN.md
+Last session: 2026-04-03T10:42:45.705Z
+Stopped at: Completed 03-injected-panel-ui/03-03-PLAN.md
 Resume file: None

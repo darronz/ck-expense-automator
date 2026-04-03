@@ -38,8 +38,8 @@
 
 ### Unmatched Item Handling
 
-- [ ] **UNMT-01**: Unmatched items show an inline assignment form with category dropdown, reason, vendor, and VAT fields
-- [ ] **UNMT-02**: "Save as rule" checkbox (default checked) auto-creates a new rule from the manual submission
+- [x] **UNMT-01**: Unmatched items show an inline assignment form with category dropdown, reason, vendor, and VAT fields
+- [x] **UNMT-02**: "Save as rule" checkbox (default checked) auto-creates a new rule from the manual submission
 - [x] **UNMT-03**: Auto-derived match pattern from vendor name is shown and editable before saving
 - [x] **UNMT-04**: Category dropdown shows most-used categories at the top
 - [x] **UNMT-05**: VAT divisibility hint shown when gross amount is divisible by 1.2
@@ -103,8 +103,8 @@
 | PANEL-06 | Phase 3 | Complete |
 | PANEL-07 | Phase 3 | Complete |
 | PANEL-08 | Phase 3 | Complete |
-| UNMT-01 | Phase 3 | Pending |
-| UNMT-02 | Phase 3 | Pending |
+| UNMT-01 | Phase 3 | Complete |
+| UNMT-02 | Phase 3 | Complete |
 | UNMT-03 | Phase 3 | Complete |
 | UNMT-04 | Phase 3 | Complete |
 | UNMT-05 | Phase 3 | Complete |

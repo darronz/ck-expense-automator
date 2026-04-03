@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Data Layer** - WXT scaffold, MAIN world injection, rule storage, and core matching engine (completed 2026-04-03)
 - [x] **Phase 2: Portal Integration and Submission** - Suspense item reading from DataTable and expense submission via fetch() POST (completed 2026-04-03)
-- [ ] **Phase 3: Injected Panel UI** - Shadow DOM panel with matched/unmatched display, submit flows, and inline assignment form
+- [x] **Phase 3: Injected Panel UI** - Shadow DOM panel with matched/unmatched display, submit flows, and inline assignment form (completed 2026-04-03)
 - [ ] **Phase 4: Extension Pages and Polish** - Popup, options page with full rule management, dry-run mode, and trust features
 
 ## Phase Details
@@ -89,5 +89,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation and Data Layer | 2/2 | Complete   | 2026-04-03 |
 | 2. Portal Integration and Submission | 2/2 | Complete   | 2026-04-03 |
-| 3. Injected Panel UI | 2/3 | In Progress|  |
+| 3. Injected Panel UI | 3/3 | Complete   | 2026-04-03 |
 | 4. Extension Pages and Polish | 0/1 | Not started | - |
