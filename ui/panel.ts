@@ -960,9 +960,28 @@ export function createPanel(container: HTMLElement, ctx: any): void {
   const minimizeBtn = el('button', { class: 'ck-header-btn' }, '−');
   const closeBtn = el('button', { class: 'ck-header-btn' }, '×');
 
+  let minimized = false;
   minimizeBtn.addEventListener('click', () => {
-    bodyEl.style.display = bodyEl.style.display === 'none' ? '' : 'none';
-    footerEl.style.display = footerEl.style.display === 'none' ? '' : 'none';
+    minimized = !minimized;
+    bodyEl.style.display = minimized ? 'none' : '';
+    footerEl.style.display = minimized ? 'none' : '';
+    progressSection.style.display = minimized ? 'none' : '';
+    minimizeBtn.textContent = minimized ? '+' : '−';
+
+    // Reposition: centered when expanded, bottom-right when minimized
+    const containerEl = panelEl.parentElement;
+    const htmlWrapper = containerEl?.parentElement;
+    if (htmlWrapper) {
+      if (minimized) {
+        (htmlWrapper as HTMLElement).style.alignItems = 'flex-end';
+        (htmlWrapper as HTMLElement).style.justifyContent = 'flex-end';
+        (htmlWrapper as HTMLElement).style.padding = '0 24px 24px 0';
+      } else {
+        (htmlWrapper as HTMLElement).style.alignItems = 'center';
+        (htmlWrapper as HTMLElement).style.justifyContent = 'center';
+        (htmlWrapper as HTMLElement).style.padding = '0';
+      }
+    }
   });
   closeBtn.addEventListener('click', () => {
     panelEl.remove();
