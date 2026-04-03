@@ -4,7 +4,7 @@ A Chrome extension that automates expense claim entry on the Churchill Knight & 
 
 ## The Problem
 
-Each month, CK portal users must manually enter 10-20 expense items. Each item requires 8+ form interactions: selecting payment type, ticking checkboxes, picking dates, choosing categories, entering amounts and VAT. Most of these are recurring expenses (internet, phone, subscriptions) with the same values every month.
+Each month, CK portal users must manually enter multiple expense items. Each item requires 8+ form interactions: selecting payment type, ticking checkboxes, picking dates, choosing categories, entering amounts and VAT. Most of these are recurring expenses (internet, phone, subscriptions) with the same values every month.
 
 ## What This Does
 
