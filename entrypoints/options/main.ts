@@ -174,9 +174,12 @@ function renderPage(rules: ExpenseRule[]): void {
       <span class="toolbar-left" id="rule-count">${rules.length} rule${rules.length !== 1 ? 's' : ''}</span>
       <div class="toolbar-right">
         <button class="btn-add-rule" id="btn-show-add">Add Rule</button>
+        <button class="btn" id="btn-export">Export JSON</button>
+        <label class="btn" id="btn-import-label" style="cursor:pointer;">Import JSON<input type="file" id="btn-import" accept=".json" style="display:none;"></label>
         <button class="btn-reset" id="btn-reset">Reset to Defaults</button>
       </div>
     </div>
+    <div id="import-status" style="display:none;padding:8px 12px;margin-bottom:8px;border-radius:4px;font-size:13px;"></div>
 
     <table id="rules-table">
       <thead>
@@ -258,6 +261,77 @@ function attachEventListeners(): void {
         resetBtn.classList.remove('btn-delete');
       }, 3000);
     }
+  });
+
+  // Export rules as JSON file
+  document.getElementById('btn-export')?.addEventListener('click', () => {
+    const data = JSON.stringify(currentRules, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ck-expense-rules-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Import rules from JSON file
+  document.getElementById('btn-import')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('import-status');
+
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+
+      if (!Array.isArray(imported)) {
+        throw new Error('File must contain a JSON array of rules');
+      }
+
+      // Validate each rule has required fields
+      for (const rule of imported) {
+        if (!rule.name || !rule.matchPattern || !rule.nominalId) {
+          throw new Error(`Invalid rule: missing name, matchPattern, or nominalId`);
+        }
+        // Ensure each imported rule has an id
+        if (!rule.id) rule.id = crypto.randomUUID();
+        // Ensure defaults for optional fields
+        if (rule.enabled === undefined) rule.enabled = true;
+        if (rule.hasVat === undefined) rule.hasVat = false;
+        if (rule.vatAmount === undefined) rule.vatAmount = null;
+        if (rule.vatPercentage === undefined) rule.vatPercentage = null;
+        if (!rule.matchFlags) rule.matchFlags = 'i';
+        if (!rule.createdAt) rule.createdAt = new Date().toISOString();
+        if (!rule.description) rule.description = '';
+        if (!rule.purchasedFrom) rule.purchasedFrom = '';
+      }
+
+      // Replace all rules with imported ones
+      await saveRules(imported);
+
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#dcfce7';
+        statusEl.style.color = '#166534';
+        statusEl.textContent = `Imported ${imported.length} rule${imported.length !== 1 ? 's' : ''} successfully`;
+        setTimeout(() => { statusEl.style.display = 'none'; }, 4000);
+      }
+
+      await initPage();
+    } catch (err) {
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#fee2e2';
+        statusEl.style.color = '#991b1b';
+        statusEl.textContent = `Import failed: ${err instanceof Error ? err.message : String(err)}`;
+        setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+      }
+    }
+
+    // Reset file input so same file can be re-imported
+    (e.target as HTMLInputElement).value = '';
   });
 }
 
