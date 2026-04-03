@@ -740,11 +740,86 @@ function buildMatchedRow(
     }
   });
 
-  // Prevent [Edit] link from submitting
+  // [Edit] replaces the details table with editable fields
   detailsDiv.querySelector('.ck-edit-link')?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Edit functionality is a placeholder for Plan 03
+
+    // Build edit form
+    const editForm = document.createElement('div');
+    editForm.className = 'ck-edit-form';
+    editForm.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">
+        <label style="font-size:11px;color:#6b7280;">Category
+          <select class="ck-edit-category" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;"></select>
+        </label>
+        <label style="font-size:11px;color:#6b7280;">Reason
+          <input class="ck-edit-description" type="text" value="${rule.description}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;" />
+        </label>
+        <label style="font-size:11px;color:#6b7280;">Vendor
+          <input class="ck-edit-vendor" type="text" value="${rule.purchasedFrom}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;font-family:inherit;box-sizing:border-box;" />
+        </label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="ck-edit-save" style="background:#2563eb;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;">Save</button>
+          <button class="ck-edit-cancel" style="background:#6b7280;color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    // Populate category dropdown
+    const catSelect = editForm.querySelector('.ck-edit-category') as HTMLSelectElement;
+    for (const [id, label] of Object.entries(CATEGORIES)) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = label;
+      if (id === rule.nominalId) opt.selected = true;
+      catSelect.appendChild(opt);
+    }
+
+    // Replace details content with edit form
+    const originalHTML = detailsDiv.innerHTML;
+    detailsDiv.innerHTML = '';
+    detailsDiv.appendChild(editForm);
+
+    // Stop clicks inside form from collapsing the row
+    editForm.addEventListener('click', (ev) => ev.stopPropagation());
+
+    // Cancel restores original
+    editForm.querySelector('.ck-edit-cancel')?.addEventListener('click', () => {
+      detailsDiv.innerHTML = originalHTML;
+      // Re-attach the edit listener
+      detailsDiv.querySelector('.ck-edit-link')?.addEventListener('click', (e2) => {
+        (e2 as Event).preventDefault();
+        (e2 as Event).stopPropagation();
+        // Re-trigger by dispatching a new click — but simpler to just reload
+        // For now, editing is one-shot per expand
+      });
+    });
+
+    // Save updates the rule object for this submission
+    editForm.querySelector('.ck-edit-save')?.addEventListener('click', () => {
+      rule.nominalId = catSelect.value;
+      rule.description = (editForm.querySelector('.ck-edit-description') as HTMLInputElement).value;
+      rule.purchasedFrom = (editForm.querySelector('.ck-edit-vendor') as HTMLInputElement).value;
+
+      // Update the secondary row text
+      const newCatLabel = getCategoryLabel(rule.nominalId);
+      const newVatSummary = formatVatSummary(rule);
+      secondaryRow.textContent = `${newCatLabel} · ${rule.purchasedFrom} · ${newVatSummary}`;
+
+      // Restore details view with updated values
+      detailsDiv.innerHTML = `
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Category</td><td>${newCatLabel}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Reason</td><td>${rule.description}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Vendor</td><td>${rule.purchasedFrom}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Amount</td><td>${formatAmount(item.amount)}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">VAT</td><td>${newVatSummary}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:#6b7280;white-space:nowrap;">Date</td><td>${item.date}</td></tr>
+        </table>
+        <a href="#" class="ck-edit-link" style="font-size:11px;color:#2563eb;text-decoration:underline;margin-top:4px;display:inline-block;">[Edit]</a>
+      `;
+    });
   });
 
   rowEl.appendChild(primaryRow);
