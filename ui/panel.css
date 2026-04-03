@@ -1,0 +1,97 @@
+/* ui/panel.css
+ * Shadow-root-injected stylesheet for the CK Expense Automator panel.
+ *
+ * IMPORTANT: WXT applies `all: initial` inside the shadow root by default.
+ * Every display, box-sizing, and font property must be explicitly declared.
+ */
+
+/* ============================================================
+   Panel root
+   ============================================================ */
+
+.ck-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.ck-panel * {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   Header — plan 02 will add content
+   ============================================================ */
+
+.ck-panel-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.ck-panel-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ck-panel-header-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ck-panel-header-meta {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.ck-panel-header-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* ============================================================
+   Body — plan 02 will add item list content
+   ============================================================ */
+
+.ck-panel-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+/* ============================================================
+   Footer — plan 02 will add progress/status content
+   ============================================================ */
+
+.ck-panel-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 12px;
+  color: #6b7280;
+}

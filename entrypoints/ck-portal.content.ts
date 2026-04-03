@@ -31,6 +31,13 @@ export default defineContentScript({
         try {
           const items = await readSuspenseItems(claimId);
           console.log(`[CK Expense Automator] Read ${items.length} suspense items`, items);
+
+          // Store for isolated-world late subscribers, then fire event
+          (window as any).__ckExpenseData = { claimId, items };
+          document.dispatchEvent(new CustomEvent('ck:items-ready', {
+            detail: { claimId, items },
+            bubbles: false,
+          }));
         } catch (err) {
           console.error('[CK Expense Automator] Failed to read suspense items:', err);
         }
