@@ -1030,7 +1030,7 @@ export function createPanel(container: HTMLElement, ctx: any): void {
 
   const scanSection = el('div', { class: 'ck-scan-section' });
   const scanBtn = el('button', { class: 'ck-scan-btn' }, 'Scan Items');
-  const scanHint = el('div', { class: 'ck-scan-hint' }, 'Reads your unmapped bank transactions from the table below');
+  const scanHint = el('div', { class: 'ck-scan-hint' }, 'Reads your unmapped bank transactions');
   scanSection.appendChild(scanBtn);
   scanSection.appendChild(scanHint);
   bodyEl.appendChild(scanSection);
