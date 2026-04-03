@@ -44,11 +44,11 @@ Plans:
   2. DataTable iteration always leaves the CK form in clean state (no selected rows, empty MappedSuspenseItemIds) even when an error occurs mid-loop
   3. A single expense POST with correct ASP.NET double-field checkbox encoding returns a detected success, not a false positive from an HTTP 200 with validation errors in the body
   4. Session expiry (redirect to login page) is detected and surfaced to the user as a clear message instead of a silent failure
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: ck-api.js — Payment Type trigger, MutationObserver DataTable readiness, row iteration with try/finally cleanup, suspense item extraction
-- [ ] 02-02: fetch() POST submission with ASP.NET checkbox encoding, response body validation error parsing, and session expiry detection
+- [ ] 02-01-PLAN.md — lib/types.ts SubmissionResult type, lib/ck-api.ts with readSuspenseItems(), MutationObserver DataTable readiness, Payment Type trigger, row iteration with try/finally cleanup
+- [ ] 02-02-PLAN.md — submitExpense(), parseValidationErrors(), detectSessionExpiry() added to lib/ck-api.ts; tests/ck-api.test.ts with full unit test coverage; content script wired to call readSuspenseItems()
 
 ### Phase 3: Injected Panel UI
 **Goal**: User can see all matched and unmatched suspense items in an injected panel and submit them individually or in bulk without leaving the CK portal page
