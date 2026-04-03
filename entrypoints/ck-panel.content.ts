@@ -69,18 +69,21 @@ export default defineContentScript({
         });
 
         // WXT injects an <html> wrapper inside the shadow root with
-        // "position: absolute; top: 0; right: 0" — override it to allow centering
+        // "position: absolute; top: 0; right: 0" — override to fill the fixed host
         const htmlWrapper = shadowHost.shadowRoot?.querySelector('html');
         if (htmlWrapper) {
           Object.assign((htmlWrapper as HTMLElement).style, {
-            position: 'static',
-            top: 'auto',
-            right: 'auto',
-            width: '100%',
-            height: '100%',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            width: '100vw',
+            height: '100vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            pointerEvents: 'none',
           });
         }
 
