@@ -174,8 +174,8 @@ function renderPage(rules: ExpenseRule[]): void {
       <span class="toolbar-left" id="rule-count">${rules.length} rule${rules.length !== 1 ? 's' : ''}</span>
       <div class="toolbar-right">
         <button class="btn-add-rule" id="btn-show-add">Add Rule</button>
-        <button class="btn" id="btn-export">Export JSON</button>
-        <label class="btn" id="btn-import-label" style="cursor:pointer;">Import JSON<input type="file" id="btn-import" accept=".json" style="display:none;"></label>
+        <button class="btn btn-edit" id="btn-export">Export JSON</button>
+        <label class="btn btn-edit" id="btn-import-label">Import JSON<input type="file" id="btn-import" accept=".json" style="display:none;"></label>
         <button class="btn-reset" id="btn-reset">Reset to Defaults</button>
       </div>
     </div>

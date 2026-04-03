@@ -109,18 +109,26 @@ input.invalid {
 
 /* ─── Buttons ──────────────────────────────────────────────────────────────── */
 
-.btn {
+.btn,
+.btn-add-rule,
+.btn-reset {
   cursor: pointer;
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
   border: 1px solid;
   font-family: inherit;
   line-height: 1.4;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.btn:focus {
+.btn:focus,
+.btn-add-rule:focus,
+.btn-reset:focus {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
@@ -167,24 +175,18 @@ input.invalid {
 
 .btn-reset {
   color: #dc2626;
-  border-color: #dc2626;
-  background: white;
-  padding: 6px 14px;
-  font-size: 13px;
-  border-radius: 6px;
+  border-color: #fecaca;
+  background: #fef2f2;
 }
 
 .btn-reset:hover {
-  background: #fef2f2;
+  background: #fee2e2;
 }
 
 .btn-add-rule {
   color: white;
   background: #2563eb;
   border-color: #2563eb;
-  padding: 6px 14px;
-  font-size: 13px;
-  border-radius: 6px;
 }
 
 .btn-add-rule:hover {
