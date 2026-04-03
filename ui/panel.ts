@@ -1013,19 +1013,10 @@ export function createPanel(container: HTMLElement, ctx: any): void {
     });
   }
 
-  // Check for data already dispatched before we registered the listener
-  const existingData = typeof window !== 'undefined' ? (window as any).__ckExpenseData : null;
-  if (existingData) {
-    handleItemsReady(existingData);
-  } else {
-    // Register listener for when MAIN world fires ck:items-ready
-    const listener = (event: Event) => {
-      if (event instanceof CustomEvent) handleItemsReady(event.detail);
-    };
-    if (ctx && typeof ctx.addEventListener === 'function') {
-      ctx.addEventListener(document, 'ck:items-ready', listener);
-    } else {
-      document.addEventListener('ck:items-ready', listener);
+  // Listen for data from MAIN world via window.postMessage (crosses world boundary).
+  window.addEventListener('message', (event: MessageEvent) => {
+    if (event.data?.type === 'ck:items-ready' && event.data?.payload) {
+      handleItemsReady(event.data.payload);
     }
-  }
+  });
 }

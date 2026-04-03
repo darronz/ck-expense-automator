@@ -32,12 +32,12 @@ export default defineContentScript({
           const items = await readSuspenseItems(claimId);
           console.log(`[CK Expense Automator] Read ${items.length} suspense items`, items);
 
-          // Store for isolated-world late subscribers, then fire event
-          (window as any).__ckExpenseData = { claimId, items };
-          document.dispatchEvent(new CustomEvent('ck:items-ready', {
-            detail: { claimId, items },
-            bubbles: false,
-          }));
+          // Send to isolated-world panel via window.postMessage (crosses world boundary).
+          // CustomEvent on document does NOT cross MAIN→ISOLATED world boundary.
+          window.postMessage({
+            type: 'ck:items-ready',
+            payload: { claimId, items },
+          }, '*');
         } catch (err) {
           console.error('[CK Expense Automator] Failed to read suspense items:', err);
         }

@@ -79,22 +79,14 @@ export default defineContentScript({
 
     ui.mount();
 
-    // Late-subscriber pattern: check if MAIN world already fired ck:items-ready
-    // before this isolated-world script registered its event listener.
-    // The MAIN world stores data on window.__ckExpenseData as a fallback.
-    const existing = (window as any).__ckExpenseData;
-    if (existing) {
-      handleItemsReady(existing);
-    } else {
-      ctx.addEventListener(document, 'ck:items-ready' as any, (event: Event) => {
-        if (event instanceof CustomEvent) handleItemsReady(event.detail);
-      });
-    }
-
-    // Listen for match result updates from the panel (via custom event)
-    ctx.addEventListener(document, 'ck:match-result' as any, (event: Event) => {
-      if (event instanceof CustomEvent) {
-        currentMatchResult = event.detail as MatchResult;
+    // Listen for data from MAIN world via window.postMessage (crosses world boundary).
+    // CustomEvent on document does NOT cross MAIN→ISOLATED, but postMessage does.
+    window.addEventListener('message', (event: MessageEvent) => {
+      if (event.data?.type === 'ck:items-ready' && event.data?.payload) {
+        handleItemsReady(event.data.payload);
+      }
+      if (event.data?.type === 'ck:match-result' && event.data?.payload) {
+        currentMatchResult = event.data.payload as MatchResult;
       }
     });
   },
