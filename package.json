@@ -1,0 +1,30 @@
+{
+  "name": "ck-expense-automator",
+  "version": "1.0.0",
+  "description": "Automate expense claim entry on the Churchill Knight portal",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darronz/ck-expense-automator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darronz/ck-expense-automator/issues"
+  },
+  "homepage": "https://github.com/darronz/ck-expense-automator#readme",
+  "dependencies": {
+    "wxt": "^0.20.20"
+  },
+  "devDependencies": {
+    "typescript": "5.7",
+    "vitest": "^4.1.2"
+  }
+}
