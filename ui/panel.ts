@@ -376,6 +376,7 @@ function renderInlineForm(
   rules: ExpenseRule[],
   rowEl: HTMLElement,
   onAssign?: (item: SuspenseItem, rule: ExpenseRule) => void,
+  toggleIcon?: HTMLElement,
 ): HTMLElement {
   const formEl = el('div', { class: 'ck-inline-form' });
 
@@ -504,6 +505,7 @@ function renderInlineForm(
   cancelBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     rowEl.classList.remove('ck-form-open');
+    if (toggleIcon) toggleIcon.textContent = '+';
     errorDiv.textContent = '';
   });
 
@@ -620,7 +622,7 @@ function renderUnmatchedRow(
   rowEl.appendChild(primaryRow);
 
   // Build inline form (hidden until ck-form-open applied)
-  const inlineForm = renderInlineForm(item, claimId, rules, rowEl, onAssign);
+  const inlineForm = renderInlineForm(item, claimId, rules, rowEl, onAssign, toggleIcon);
   rowEl.appendChild(inlineForm);
 
   return rowEl;
